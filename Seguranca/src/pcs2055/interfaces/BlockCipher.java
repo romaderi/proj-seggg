@@ -1,4 +1,4 @@
-package interfaces;
+package pcs2055.interfaces;
 
 public interface BlockCipher {
     /**
@@ -35,4 +35,15 @@ public interface BlockCipher {
      */
     void decrypt(byte[] cBlock, byte[] mBlock);
 
+    /**
+    * Apply a square-complete transform to exactly
+    * one block of ciphertext.
+    *
+    * @param cBlock
+    ciphertext block.
+    * @param mBlock
+    plaintext block.
+    */
+    void sct(byte[] cBlock, byte[] mBlock);
+    
 }
