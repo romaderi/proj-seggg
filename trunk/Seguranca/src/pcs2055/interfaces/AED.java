@@ -1,4 +1,4 @@
-package interfaces;
+package pcs2055.interfaces;
 
 public interface AED {
     /**
@@ -65,13 +65,19 @@ public interface AED {
     byte[] decrypt(byte[] cData, int cLength, byte[] mData);
 
     /**
-     * Complete if necessary the data processing and get the MAC tag of the whole message provided.
-     * 
-     * @param tag the MAC tag buffer.
-     * 
-     * @return MAC tag of the whole message (if the tag parameter is null, a new one is allocated automatically,
-     *         otherwise the input buffer is returned)
-     */
-    byte[] getTag(byte[] tag);
+    * Complete if necessary the data processing and
+    * get the MAC tag (of specified size)
+    * of the whole message provided.
+    *
+    * @param tag
+    the MAC tag buffer.
+    * @param tagBits
+    the desired tag size in bits.
+    *
+    * @return MAC tag of the whole message (if the tag parameter
+    is null, a new one is allocated automatically, otherwise the input
+    buffer is returned)
+    */
+    byte[] getTag(byte[] tag, int tagBits);
 
 }
