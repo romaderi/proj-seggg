@@ -1,6 +1,7 @@
 package pcs2055.interfaces;
 
 public interface MAC {
+    
     /**
      * Provide the underlying block cipher.
      * 
@@ -34,14 +35,12 @@ public interface MAC {
     * get the MAC tag (of specified size)
     * of the whole message provided.
     *
-    * @param tag
-    the MAC tag buffer.
-    * @param tagBits
-    the desired tag size in bits.
+    * @param tag the MAC tag buffer.
+    * @param tagBits the desired tag size in bits.
     *
     * @return MAC tag of the whole message.
     * If the tag parameter is null, a new buffer is automatically
-    allocated, otherwise the input buffer is returned.
+    * allocated, otherwise the input buffer is returned.
     */
     byte[] getTag(byte[] tag, int tagBits);
 
