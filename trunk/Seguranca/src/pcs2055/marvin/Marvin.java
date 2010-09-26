@@ -2,41 +2,84 @@ package pcs2055.marvin;
 
 import pcs2055.interfaces.BlockCipher;
 import pcs2055.interfaces.MAC;
+import pcs2055.math.ByteUtil;
+import pcs2055.math.MathUtil;
 
 public class Marvin implements MAC {
     
-    private static final int c = 0x2A;
+    private static final byte c = 0x2A;
+    private static final byte[] wx = new byte[100];
 
+    // bloco de inicialização estática
+    {
+        // inicialização de wx
+    }
+    
+    private BlockCipher cipher;
+    private byte[] key;
+    private int keyBits;
+    private byte[] R;
+    private int i = 1;
+    private byte[] A; // valor acumulado
+    private int mLength = 0;
+    
     @Override
-    public byte[] getTag(byte[] tag, int tagBits) {
-        // TODO Auto-generated method stub
-        return null;
+    public void setCipher(BlockCipher cipher) {
+        
+        this.cipher = cipher;
+    }
+    
+    @Override
+    public void setKey(byte[] cipherKey, int keyBits) {
+        
+        this.key = cipherKey;
+        this.keyBits = keyBits;
     }
 
     @Override
     public void init() {
-        // TODO Auto-generated method stub
+
+        this.cipher.makeKey(this.key, this.keyBits);
         
+        byte[] cBlock = null;
+        byte[] carray = {c};
+        byte[] mBlock = ByteUtil.lpad(carray, this.cipher.blockBits());
+        this.cipher.encrypt(mBlock, cBlock);
+        this.R = ByteUtil.xor(cBlock, mBlock); 
     }
 
-    @Override
-    public void setCipher(BlockCipher cipher) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void setKey(byte[] cipherKey, int keyBits) {
-        // TODO Auto-generated method stub
-        
-    }
 
     @Override
     public void update(byte[] aData, int aLength) {
-        // TODO Auto-generated method stub
-        
+
+        byte Oi = MathUtil.multGf8(this.R, wx[this.i]); // vezes de acordo com SegA.pdf (operação em GF(8))
+        byte[] Ai; 
+        byte[] mBlock = ByteUtil.xor(ByteUtil.rpad(aData), Oi);
+        this.cipher.sct(Ai, mBlock); // confirmar posição dos parâmetros
+        this.A = ByteUtil.xor(this.A, Ai);
+        this.i++;
+        this.mLength += aLength;
     }
     
-    
+    @Override
+    public byte[] getTag(byte[] tag, int tagBits) {
 
+        // tag ???
+        
+        byte[] A0 = calculateA0(tagBits);
+        this.A = ByteUtil.xor(this.A, A0);
+        byte[] cBlock = null;
+        this.cipher.encrypt(this.A, cBlock);
+        
+        return cBlock;
+    }
+    
+    private byte[] calculateA0(int tagBits) {
+        
+        int x = ByteUtil.lpad(ByteUtil.bin(this.mLength));
+        int y = 0;
+        int z = x ^ y;
+            
+        return this.R ^ z;
+    }
 }

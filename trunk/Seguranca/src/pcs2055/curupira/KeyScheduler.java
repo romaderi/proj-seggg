@@ -1,5 +1,7 @@
 package pcs2055.curupira;
 
+import pcs2055.math.ByteUtil;
+
 public class KeyScheduler {
     
     public enum Mode {ENCRYPTING, DECRYPTING};
@@ -20,6 +22,7 @@ public class KeyScheduler {
         
         this.key = key;
         this.t = t / 48;
+        this.mode = mode;
         
         if (mode == Mode.ENCRYPTING) {
             this.round = -1;
@@ -27,7 +30,6 @@ public class KeyScheduler {
         else {
             this.round = roundMax;
         }
-        this.mode = mode;
     }
     
     public byte[] nextSubKey() {
@@ -43,7 +45,7 @@ public class KeyScheduler {
             o = omega(o); 
         }
         
-        byte keyStage = o + accumulatedScheduleConstant(this.round); // soma de matrizes
+        byte[] keyStage = ByteUtil.add(o, accumulatedScheduleConstant(this.round)); // soma de matrizes
         
         return fi(keyStage);
     }
@@ -76,9 +78,9 @@ public class KeyScheduler {
         for (int i=0; i<=s; i++) {
             
             byte[] q = scheduleConstant(s, this.t);
-            byte o = new byte[];
+            byte[] o = new byte[];
             for (int j=1; j<=s-i+1; j++) // s-i+1 ou s-i ???
-                o += omega(q); // soma de matrizes
+                o = ByteUtil.add(o, omega(q)); // soma de matrizes
         }
         
         
