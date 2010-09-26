@@ -1,5 +1,5 @@
 package pcs2055.math;
 
-public class MathAux {
+public class ByteUtil {
 
 }
