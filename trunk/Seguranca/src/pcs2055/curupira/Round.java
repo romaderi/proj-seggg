@@ -2,14 +2,13 @@ package pcs2055.curupira;
 
 public class Round {
         
-    // ???
-    public byte[] firstRoundFunction(byte[] block, byte[] subkey) {
+    public static byte[] initialKeyAddition(byte[] block, byte[] subkey) {
         
         return null;
     }
     
     
-    public byte[] roundFunction(byte[] block, byte[] subkey) {
+    public static byte[] roundFunction(byte[] block, byte[] subkey) {
         
         block = gama(block);
         block = pi(block);
@@ -18,7 +17,7 @@ public class Round {
         return block;
     }
     
-    public byte[] lastRoundFunction(byte[] block, byte[] subkey) {
+    public static byte[] lastRoundFunction(byte[] block, byte[] subkey) {
         
         block = gama(block);
         block = pi(block);
@@ -26,22 +25,22 @@ public class Round {
         return block;
     }
     
-    private byte[] gama(byte[] a) {
+    private static byte[] gama(byte[] a) {
         
         return null;
     }
     
-    private byte[] pi(byte[] a) {
+    private static byte[] pi(byte[] a) {
         
         return null;
     }
     
-    private byte[] teta(byte[] a) {
+    private static byte[] teta(byte[] a) {
         
         return null;
     }
     
-    private byte[] sigma(byte[] a, byte[] subkey) {
+    private static byte[] sigma(byte[] a, byte[] subkey) {
         
         return null;
     }
