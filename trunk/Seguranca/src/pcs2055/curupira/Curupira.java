@@ -80,7 +80,7 @@ public class Curupira implements BlockCipher {
 
     @Override
     public void sct(byte[] cBlock, byte[] mBlock) {
-
+    	// 
         // ????
     }
 
