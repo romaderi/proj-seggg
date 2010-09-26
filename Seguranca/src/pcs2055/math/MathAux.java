@@ -1,4 +1,4 @@
-package pcs2055.curupira;
+package pcs2055.math;
 
 public class MathAux {
 
