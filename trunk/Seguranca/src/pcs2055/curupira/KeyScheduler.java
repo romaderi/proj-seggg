@@ -40,12 +40,10 @@ public class KeyScheduler {
             this.round--;
         
         byte[] o = omega(this.key);
-        for (int i=2; i<=round; i++) {
-            
+        for (int i=2; i<=round; i++)
             o = omega(o); 
-        }
         
-        byte[] keyStage = ByteUtil.add(o, accumulatedScheduleConstant(this.round)); // soma de matrizes
+        byte[] keyStage = ByteUtil.add(o, accumulatedScheduleConstant(this.round), (48*this.t));
         
         return fi(keyStage);
     }
@@ -63,6 +61,16 @@ public class KeyScheduler {
      * @return
      */
     private byte[] scheduleConstant(int s, int t) {
+    	
+    	byte[] q = new byte[t];
+    	for (int i = 0; i < t; i++)
+    		q[i] = 0;
+    	
+        if (this.round < 1)
+        	return q;
+        
+        for (int j = 0; j < 2*this.t; j++)
+        	q[3*j] = SBox[2*t*(s-1)+j];
         
         return null;
     }
@@ -74,22 +82,50 @@ public class KeyScheduler {
      */
     private byte[] accumulatedScheduleConstant(int s) {
         
-        byte[] result = new byte[];
-        for (int i=0; i<=s; i++) {
-            
-            byte[] q = scheduleConstant(s, this.t);
-            byte[] o = new byte[];
+        //byte[] result = new byte[];
+        byte[] q = scheduleConstant(s, this.t);
+        byte[] o = new byte[48*this.t];
+        
+        for (int i=0; i<=s; i++)    
             for (int j=1; j<=s-i+1; j++) // s-i+1 ou s-i ???
-                o = ByteUtil.add(o, omega(q)); // soma de matrizes
-        }
+                o = ByteUtil.add(o, omega(q), 48*this.t); // soma de matrizes
         
-        
-        return result;
+        return o;
     }
     
     private byte[] csi(byte[] b) {
         
-        return null;
+    	byte[] result = b.clone();
+    	byte[][] key = new byte[3][2*this.t];
+    	
+    	int i, j;
+    	for (i = 0; i < 3; i++)
+    		for (j = 0; j < 2*this.t; j++)
+    			key[i][j] = b[i + 3*j];
+    			
+    	byte tmp = 0;
+		for (j = 0; j < 2*this.t; j++) {
+			if (j == 0)
+				tmp = key[1][0];
+			else if (j == 2*this.t - 1)
+				key[1][2*this.t-1] = tmp;
+			else 
+				key[1][j] = key[1][j+1];
+		}
+		for (j = 2*this.t-1; j >= 0; j--) {
+			if (j == 2*this.t-1)
+				tmp = key[2][2*this.t-1];
+			else if (j == 0)
+				key[2][0] = tmp;
+			else 
+				key[2][j] = key[2][j-1];
+		}    			
+    	
+		for (i = 0; i < 3; i++)
+			for (j = 0; j < 2*this.t; j++)
+				result[i + 3*j] = key[i][j];
+				
+        return result;
     }
 
     private byte[] mi(byte[] b) {
