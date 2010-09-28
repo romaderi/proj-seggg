@@ -7,12 +7,16 @@ public class Round {
         
     public static byte[] initialKeyAddition(byte[] block, byte[] subkey) {
         
+    	System.out.println("INITIAL KEY ADDITION"  );
+    	ByteUtil.printArray(sigma(block, subkey));
+    	
         return sigma(block, subkey);
     }
     
     
     public static byte[] roundFunction(byte[] block, byte[] subkey) {
         
+    	System.out.println("***ROUND BEGIN!!!!!");
         block = gama(block);
         block = pi(block);
         block = teta(block);
@@ -21,7 +25,8 @@ public class Round {
     }
     
     public static byte[] lastRoundFunction(byte[] block, byte[] subkey) {
-        
+    	
+    	System.out.println("+++++ LAST ROUND BEGIN");
         block = gama(block);
         block = pi(block);
         block = sigma(block, subkey);
@@ -32,10 +37,16 @@ public class Round {
         
     	byte[] b = new byte[12];
     	int i;
+    	
+    	
 
     	for (i = 0; i < 12; i++)
     		b[i] = SBox.sbox16b(a[i]);
 
+    	System.out.println("+++++++++++++++++++++++++++++++++++++++");
+    	ByteUtil.printArray(b);
+    	
+    	
     	return b;
     }
     
@@ -61,6 +72,7 @@ public class Round {
     
     private static byte[] sigma(byte[] a, byte[] subkey) {
         
+    	System.out.println("SIGMA (ROUND) BEGIN");
         return ByteUtil.xor(a, subkey, 12);
     }
 
