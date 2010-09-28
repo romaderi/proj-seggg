@@ -43,14 +43,16 @@ public class KeyScheduler {
         for (int i=2; i<=round; i++)
             o = omega(o); 
         
-        byte[] keyStage = ByteUtil.add(o, accumulatedScheduleConstant(this.round), (48*this.t));
+        byte[] keyStage = ByteUtil.add(o, accumulatedScheduleConstant(this.round), (48/8*this.t));
         
+        System.out.print("KEYSTAGE ");
+        ByteUtil.printArray(keyStage);
         return fi(keyStage);
     }
     
-    
     private byte[] omega(byte[] b) {
-        
+        System.out.print("OMEGA BEGIN - ");
+        ByteUtil.printArray(b);
         return mi(csi(b));
     }
     
@@ -62,17 +64,17 @@ public class KeyScheduler {
      */
     private byte[] scheduleConstant(int s, int t) {
     	
-    	byte[] q = new byte[t];
-    	for (int i = 0; i < t; i++)
+    	byte[] q = new byte[3*(2*t)];
+    	for (int i = 0; i < 3*(2*t); i++)
     		q[i] = 0;
     	
         if (this.round < 1)
         	return q;
         
         for (int j = 0; j < 2*this.t; j++)
-        	q[3*j] = SBox.sbox16b((byte)(2*t*(s-1)+j));
+        	q[0 + 3*j] = SBox.sbox16b((byte)(2*t*(s-1)+j));
         
-        return null;
+        return q;
     }
     
     /**
@@ -84,12 +86,17 @@ public class KeyScheduler {
         
         //byte[] result = new byte[];
         byte[] q = scheduleConstant(s, this.t);
-        byte[] o = new byte[48*this.t];
+        System.out.println("*************************************");
+        System.out.println("BEGIN OF ACCUMULATED SCHD CST");
+        ByteUtil.printArray(q);
+        byte[] o = new byte[48/8*this.t];
         
         for (int i=0; i<=s; i++)    
             for (int j=1; j<=s-i+1; j++) // s-i+1 ou s-i ???
-                o = ByteUtil.add(o, omega(q), 48*this.t); // soma de matrizes
+                o = ByteUtil.add(o, omega(q), 48/8*this.t); // soma de matrizes
         
+        ByteUtil.printArray(o);
+        System.out.println("END OF ACCUMULATED SCHEDULE CST");
         return o;
     }
     
@@ -136,7 +143,7 @@ public class KeyScheduler {
     private byte[] mi(byte[] b) {
         
     	int i, j;
-    	byte c = 0;
+    	byte c = 0x1C; // c(x) = x^4 + x^3 + x^2
     	byte[][] mb = new byte[3][2*this.t];
     	byte[][] e = new byte[3][3];
     	
@@ -158,15 +165,16 @@ public class KeyScheduler {
         for (i = 0; i < 3; i++) {
             for (j = 0; j < 3; j++) {
                 for (int k = 0; k < 2*this.t; k++)
-                    mc[i][j] += (byte) (e[i][k] * mb[k][j]);
+                    mc[i][j] += (byte) (e[i][j] * mb[j][k]);
             }
         }
-
+        
         // volta pra forma de vetor
         byte[] result = new byte[3*2*this.t];
-        for (i = 0; i < 3*2*this.t; i++)
-            result[i] = mc[i/3][i%3];
-    	
+    	for (i = 0; i < 3; i++)
+    		for (j = 0; j < 2*this.t; j++)
+    			result[i + 3*j] = mc[i][j];  
+        
         return result;
     }
     
@@ -190,6 +198,7 @@ public class KeyScheduler {
     		for (j = 0; j < 4; j++)
     			key[i + 3*j] = K[i + 3*j]; 
 
+    	System.out.println("FI DONE!!!!!");
         return key;
     }
     
