@@ -8,17 +8,11 @@ import pcs2055.math.MathUtil;
 public class Marvin implements MAC {
     
     private static final byte c = 0x2A;
-    private static final byte[] wx = new byte[100];
-
-    // bloco de inicialização estática
-    {
-        // inicialização de wx
-    }
     
     private BlockCipher cipher;
     private byte[] key;
     private int keyBits;
-    private byte[] R;
+    private byte R;
     private int i = 1;
     private byte[] A; // valor acumulado
     private int mLength = 0;
@@ -28,6 +22,7 @@ public class Marvin implements MAC {
         
         this.cipher = cipher;
     }
+    
     
     @Override
     public void setKey(byte[] cipherKey, int keyBits) {
@@ -52,7 +47,8 @@ public class Marvin implements MAC {
     @Override
     public void update(byte[] aData, int aLength) {
 
-        byte Oi = MathUtil.multGf8(this.R, wx[this.i]); // vezes de acordo com SegA.pdf (operação em GF(8))
+        byte[] r = {this.R};
+        byte[] Oi = MathUtil.xtimes(r, this.cipher.blockBits());
         byte[] Ai; 
         byte[] mBlock = ByteUtil.xor(ByteUtil.rpad(aData), Oi);
         this.cipher.sct(Ai, mBlock); // confirmar posição dos parâmetros
