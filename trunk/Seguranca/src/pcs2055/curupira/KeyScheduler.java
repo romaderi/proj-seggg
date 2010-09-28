@@ -98,11 +98,15 @@ public class KeyScheduler {
     	byte[] result = b.clone();
     	byte[][] key = new byte[3][2*this.t];
     	
+    	// transforma em matriz
     	int i, j;
     	for (i = 0; i < 3; i++)
     		for (j = 0; j < 2*this.t; j++)
     			key[i][j] = b[i + 3*j];
-    			
+    	
+    	// mantem a primeira linha
+    	// desloca segunda linha pra esquerda
+    	// desloca terceira linha pra direita
     	byte tmp = 0;
 		for (j = 0; j < 2*this.t; j++) {
 			if (j == 0)
@@ -121,6 +125,7 @@ public class KeyScheduler {
 				key[2][j] = key[2][j-1];
 		}    			
     	
+		// volta pra forma de vetor
 		for (i = 0; i < 3; i++)
 			for (j = 0; j < 2*this.t; j++)
 				result[i + 3*j] = key[i][j];
@@ -130,7 +135,39 @@ public class KeyScheduler {
 
     private byte[] mi(byte[] b) {
         
-        return null;
+    	int i, j;
+    	byte c = 0;
+    	byte[][] mb = new byte[3][2*this.t];
+    	byte[][] e = new byte[3][3];
+    	
+    	// matriz E = I + C
+    	for (i = 0; i < 3; i++)
+    		for (j = 0; j < 3; j++) {
+    			e[i][j] = c;
+    			if (i == j)
+    				e[i][j] += (byte)1;
+    		}
+    	
+    	// matriz de b
+    	for (i = 0; i < 3; i++)
+    		for (j = 0; j < 2*this.t; j++)
+    			mb[i][j] = b[i + 3*j];  
+    	
+    	// multiplica
+        byte[][] mc = new byte[3][2*this.t];
+        for (i = 0; i < 3; i++) {
+            for (j = 0; j < 3; j++) {
+                for (int k = 0; k < 2*this.t; k++)
+                    mc[i][j] += (byte) (e[i][k] * mb[k][j]);
+            }
+        }
+
+        // volta pra forma de vetor
+        byte[] result = new byte[3*2*this.t];
+        for (i = 0; i < 3*2*this.t; i++)
+            result[i] = mc[i/3][i%3];
+    	
+        return result;
     }
     
     /**
