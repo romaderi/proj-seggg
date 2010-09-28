@@ -12,6 +12,11 @@ public class ByteUtil {
         return null;
     }
 
+    public static byte[] bin(byte[] b, int n) {
+        
+        return null;
+    }
+
     public static byte[] add(byte[] a, byte[] b, int length) {
         
         byte[] c = new byte[length];

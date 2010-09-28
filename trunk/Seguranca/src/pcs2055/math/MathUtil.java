@@ -1,5 +1,9 @@
 package pcs2055.math;
 
+import java.math.BigInteger;
+
+import sun.security.util.BigInt;
+
 public class MathUtil {
     
     // GF(8)
@@ -37,38 +41,34 @@ public class MathUtil {
         int k3, k2, k1;
         
         V = rotl(V, w); // ???
-        
-        byte R[] = new byte[V.length];
-        byte r1[] = new byte[V.length];
-        byte r2[] = new byte[V.length];
-        byte r3[] = new byte[V.length];
 
-        for (byte b=0; b<R.length; b++) {
-            R[b] = V[b];
-            r1[b] = V[b];
-            r2[b] = V[b];
-            r3[b] = V[b];
-        }
+        BigInteger dois = BigInteger.valueOf(2);
+        BigInteger ff = BigInteger.valueOf(0xFF);
+        BigInteger v = new BigInteger(V);
+        BigInteger R = new BigInteger(V);
+        BigInteger r1 = new BigInteger(V);
+        BigInteger r2 = new BigInteger(V);
+        BigInteger r3 = new BigInteger(V);
 
         // R <- V & 0xFF
-        R[0] = (byte) (R[0] & 0xFF);
+        R = R.and(ff);
         
         // r1 <- R << k1
         for (int i=0; i< k1; i++)
-            r1 = r1 * 2;
+            r1 = r1.multiply(dois);
         // r2 <- R << k2
         for (int i=0; i< k2; i++)
-            r2 = r2 * 2;
+            r2 = r2.multiply(dois);
         // r3 <- R << k3
         for (int i=0; i< k3; i++)
-            r3 = r3 * 2;
+            r3 = r3.multiply(dois);
 
         // V <- V xor (R << k3) xor (R << k2) xor (R << k1)
-        V = ByteUtil.xor(V, r1, V.length);
-        V = ByteUtil.xor(V, r2, V.length);
-        V = ByteUtil.xor(V, r3, V.length);
+        v = v.xor(r1);
+        v = v.xor(r2);
+        v = v.xor(r3);
         
-        return V;
+        return v.toByteArray();
     }
 
 }
