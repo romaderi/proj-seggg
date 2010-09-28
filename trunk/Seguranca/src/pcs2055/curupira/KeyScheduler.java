@@ -70,7 +70,7 @@ public class KeyScheduler {
         	return q;
         
         for (int j = 0; j < 2*this.t; j++)
-        	q[3*j] = SBox[2*t*(s-1)+j];
+        	q[3*j] = SBox.sbox16b((byte)(2*t*(s-1)+j));
         
         return null;
     }
@@ -142,8 +142,18 @@ public class KeyScheduler {
         
         // cópia de K trocando a primeira linha com o resultado da primeira linha de sbox(K)
         // limita aqui a sub-chave a 96 bits
+    	
+    	byte[] key = new byte[12];
+    	int i, j;
+    	
+    	for (j = 0; j < 4; j++)
+			key[3*j] = SBox.sbox16b(key[3*j]);
+    	
+    	for (i = 1; i < 3; i++)
+    		for (j = 0; j < 4; j++)
+    			key[i + 3*j] = K[i + 3*j]; 
 
-        return null;
+        return key;
     }
     
 

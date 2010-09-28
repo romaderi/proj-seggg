@@ -1,12 +1,13 @@
 package pcs2055.curupira;
 
 import pcs2055.math.ByteUtil;
+import pcs2055.curupira.SBox;
 
 public class Round {
         
     public static byte[] initialKeyAddition(byte[] block, byte[] subkey) {
         
-        return null;
+        return sigma(block, subkey);
     }
     
     
@@ -29,7 +30,13 @@ public class Round {
     
     private static byte[] gama(byte[] a) {
         
-    	return null;
+    	byte[] b = new byte[12];
+    	int i;
+
+    	for (i = 0; i < 12; i++)
+    		b[i] = SBox.sbox16b(a[i]);
+
+    	return b;
     }
     
     private static byte[] pi(byte[] a) {
