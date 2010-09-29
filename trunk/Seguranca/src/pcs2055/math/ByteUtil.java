@@ -1,5 +1,7 @@
 package pcs2055.math;
 
+import java.math.BigInteger;
+
 public class ByteUtil {
 
     public static byte[] lpad(byte[] b, int n) {
@@ -35,39 +37,76 @@ public class ByteUtil {
      */
     public static byte[] mult3xn(byte[] a, byte[] b, int n) {
         
+    	int i, j;
+    	BigInteger[][] ma = new BigInteger[3][3];
+    	BigInteger[][] mb = new BigInteger[3][n];
+    	
+    	// matriz ma
+    	for (i = 0; i < 3; i++)
+    		for (j = 0; j < 3; j++)
+    			ma[i][j] = BigInteger.valueOf(a[i + 3*j]);
+    			
+    	// matriz de b
+    	for (i = 0; i < 3; i++)
+    		for (j = 0; j < n; j++)
+    			mb[i][j] = BigInteger.valueOf(b[i + 3*j]);
+
+    	// multiplica
+        BigInteger[][] mc = new BigInteger[3][n];
+        for (i = 0; i < 3; i++)
+            for (j = 0; j < n; j++)
+            	mc[i][j] = BigInteger.valueOf(0);
+        
+        for (i = 0; i < 3; i++) 
+            for (j = 0; j < n; j++) 
+                for (int k = 0; k < 3; k++)
+                    mc[i][j] = mc[i][j].add(ma[i][k].multiply(mb[k][j]));
+        
+        // volta pra forma de vetor
+        byte[] result = new byte[3*n];
+    	for (i = 0; i < 3; i++)
+    		for (j = 0; j < 2*2; j++)
+    			result[i + 3*j] = mc[i][j].byteValue();  
+    	
+        return result;
+    	
+    	
+    	
+    	/*
         // cria matrizes
-        byte[][] ma = new byte[3][n];
-        byte[][] mb = new byte[n][3];
+        byte[][] ma = new byte[3][3];
+        byte[][] mb = new byte[3][n];
+        for (int i=0; i<3; i++) {
+            for (int j=0; j<3; j++)
+                ma[i][j] = (byte) a[i + 3*j];
+        }
         for (int i=0; i<3; i++) {
             for (int j=0; j<n; j++)
-                ma[i][j] = (byte) a[i*n + j];
-        }
-        for (int i=0; i<n; i++) {
-            for (int j=0; j<3; j++)
-                mb[i][j] = (byte) b[i*3 + j];
+                mb[i][j] = (byte) b[i + 3*j];
         }
 
         // multiplica
-        byte[][] mc = new byte[3][3];
+        byte[][] mc = new byte[3][n];
         for (int i=0; i<3; i++) {
-            for (int j=0; j<3; j++) {
-                for (int k=0; k<n; k++)
+            for (int j=0; j<n; j++) {
+                for (int k=0; k<3; k++)
                     mc[i][j] += (byte) (ma[i][k] * mb[k][j]);
             }
         }
 
         // volta pra forma de vetor
-        byte[] c = new byte[9];
-        for (int i=0; i<9; i++)
-            c[i] = mc[i/3][i%3];
+        byte[] c = new byte[3*n];
+        for (int i = 0; i < 3; i++)
+        	for (int j = 0; j < n; j++)
+        		c[i + 3*j] = mc[i][j];
 
-        return c;
+        return c;*/
     }
 
     public static void printArray(byte[] v) {
         
         for (int i=0; i<v.length; i++)
-            System.out.print(v[i] + " ");
+            System.out.print(Integer.toHexString((short)(0x000000FF & v[i])) + " ");
         System.out.println("");
     }
 
