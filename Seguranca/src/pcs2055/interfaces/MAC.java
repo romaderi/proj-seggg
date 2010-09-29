@@ -21,6 +21,15 @@ public interface MAC {
      * Prepare to authenticate a new message.
      */
     void init();
+    
+    /**
+    * Prepare to authenticate a new message with a given initial
+    * offset value. Behavior is algorithm-dependent, e.g. default Marvin
+    * offset value R = E_K(lpad(c)) ^ lpad(c).
+    *
+    * @param R the initial offset value.
+    */
+    void init(byte[] R);
 
     /**
      * Update the MAC tag computation with a message chunk.

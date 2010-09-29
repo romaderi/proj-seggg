@@ -46,7 +46,12 @@ public class Marvin implements MAC {
         BigInteger r = new BigInteger(cBlock).xor(new BigInteger(mBlock));
         this.R = r.toByteArray(); 
     }
+    
+    @Override
+    public void init(byte[] R) {
 
+        this.R = R;
+    }
 
     @Override
     public void update(byte[] aData, int aLength) {
@@ -109,4 +114,6 @@ public class Marvin implements MAC {
 
         return r.xor(x).xor(y).toByteArray();
     }
+
+
 }
