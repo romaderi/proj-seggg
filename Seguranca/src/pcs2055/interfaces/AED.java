@@ -69,14 +69,12 @@ public interface AED {
     * get the MAC tag (of specified size)
     * of the whole message provided.
     *
-    * @param tag
-    the MAC tag buffer.
-    * @param tagBits
-    the desired tag size in bits.
+    * @param tag the MAC tag buffer.
+    * @param tagBits the desired tag size in bits.
     *
     * @return MAC tag of the whole message (if the tag parameter
-    is null, a new one is allocated automatically, otherwise the input
-    buffer is returned)
+    * is null, a new one is allocated automatically, otherwise the input
+    * buffer is returned)
     */
     byte[] getTag(byte[] tag, int tagBits);
 
