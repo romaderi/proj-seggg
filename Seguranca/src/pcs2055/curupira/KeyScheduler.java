@@ -1,5 +1,7 @@
 package pcs2055.curupira;
 
+import java.math.BigInteger;
+
 import pcs2055.math.ByteUtil;
 
 public class KeyScheduler {
@@ -7,6 +9,7 @@ public class KeyScheduler {
     public enum Mode {ENCRYPTING, DECRYPTING};
     
     private byte[] key;
+    private byte[] currentKey;
     private int t; // 2, 3 ou 4 de acordo com tamanho da chave
     private int round;
     private Mode mode;
@@ -21,6 +24,7 @@ public class KeyScheduler {
     public KeyScheduler(byte[] key, int t, Mode mode, int roundMax) {
         
         this.key = key;
+        this.currentKey = key;
         this.t = t / 48;
         this.mode = mode;
         
@@ -38,28 +42,59 @@ public class KeyScheduler {
             this.round++;
         else
             this.round--;
+        /*
+        byte[] o;
+        if (round == 0)
+        	o = this.key.clone();
+        else {
+        	o = omega(this.key);
+        	for (int i=2; i<=round; i++)
+        		o = omega(o); 
+        }
         
-        byte[] o = omega(this.key);
-        for (int i=2; i<=round; i++)
-            o = omega(o); 
+        System.out.println("Round : " + this.round);
+        System.out.print("KEY : ");
+        ByteUtil.printArray(this.key);
+        System.out.print("OMEGA : ");
+        ByteUtil.printArray(o);
         
-        byte[] keyStage = ByteUtil.add(o, accumulatedScheduleConstant(this.round), (48/8*this.t));
+        byte[] accSchdCst = accumulatedScheduleConstant(this.round);
+        
+        System.out.print("ACC SCHED CST : ");
+        ByteUtil.printArray(accSchdCst);
+        
+        
+        byte[] keyStage = ByteUtil.add(o, accSchdCst, ((48/8)*this.t));
         
         System.out.print("KEYSTAGE ");
         ByteUtil.printArray(keyStage);
         return fi(keyStage);
+        */
+        
+        byte[] block = new byte[48*this.t];
+        block = sigma(block);
+    	System.out.print(" KEY_SIGMA -> ");
+    	ByteUtil.printArray(block);
+        block = csi(block);
+    	System.out.print(" KEY_CSI -> ");
+    	ByteUtil.printArray(block);
+        block = mi(block);
+    	System.out.print(" KEY_MI -> ");
+    	ByteUtil.printArray(block);
+        this.currentKey = fi(block);
+    	System.out.print(" KEY_FI -> ");
+    	ByteUtil.printArray(this.currentKey);
+        return fi(this.currentKey);
     }
     
     private byte[] omega(byte[] b) {
-        System.out.print("OMEGA BEGIN - ");
-        ByteUtil.printArray(b);
         return mi(csi(b));
     }
     
     /**
      * 
      * @param s round
-     * @param t tamanho da chave
+     * @param t tamanho da chave (2,3 ou 4)
      * @return
      */
     private byte[] scheduleConstant(int s, int t) {
@@ -74,6 +109,9 @@ public class KeyScheduler {
         for (int j = 0; j < 2*this.t; j++)
         	q[0 + 3*j] = SBox.sbox16b((byte)(2*t*(s-1)+j));
         
+        System.out.print("Schedule constant q : ");
+        ByteUtil.printArray(q);
+        
         return q;
     }
     
@@ -85,19 +123,23 @@ public class KeyScheduler {
     private byte[] accumulatedScheduleConstant(int s) {
         
         //byte[] result = new byte[];
-        byte[] q = scheduleConstant(s, this.t);
-        System.out.println("*************************************");
-        System.out.println("BEGIN OF ACCUMULATED SCHD CST");
-        ByteUtil.printArray(q);
+        byte[] q;
         byte[] o = new byte[48/8*this.t];
         
         for (int i=0; i<=s; i++)    
-            for (int j=1; j<=s-i+1; j++) // s-i+1 ou s-i ???
+            for (int j=1; j<=s-i+1; j++) {// s-i+1 ou s-i ???
+            	q = scheduleConstant(j, this.t);
                 o = ByteUtil.add(o, omega(q), 48/8*this.t); // soma de matrizes
+            }
         
-        ByteUtil.printArray(o);
-        System.out.println("END OF ACCUMULATED SCHEDULE CST");
         return o;
+    }
+    
+    private byte[] sigma(byte[] b) {
+    	
+    	byte[] result = b.clone();
+    	result = scheduleConstant(this.round, this.t);
+    	return result;
     }
     
     private byte[] csi(byte[] b) {
@@ -110,28 +152,36 @@ public class KeyScheduler {
     	for (i = 0; i < 3; i++)
     		for (j = 0; j < 2*this.t; j++)
     			key[i][j] = b[i + 3*j];
+
+    	//ByteUtil.printMatriz(key);
     	
     	// mantem a primeira linha
     	// desloca segunda linha pra esquerda
     	// desloca terceira linha pra direita
     	byte tmp = 0;
 		for (j = 0; j < 2*this.t; j++) {
-			if (j == 0)
+			if (j == 0) {
 				tmp = key[1][0];
+				key[1][j] = key[1][j+1];
+			}
 			else if (j == 2*this.t - 1)
 				key[1][2*this.t-1] = tmp;
 			else 
 				key[1][j] = key[1][j+1];
 		}
 		for (j = 2*this.t-1; j >= 0; j--) {
-			if (j == 2*this.t-1)
-				tmp = key[2][2*this.t-1];
+			if (j == 2*this.t-1) {
+				tmp = key[2][j];
+				key[2][j] = key[2][j-1];
+			}
 			else if (j == 0)
 				key[2][0] = tmp;
 			else 
 				key[2][j] = key[2][j-1];
 		}    			
-    	
+		
+		//ByteUtil.printMatriz(key);
+		
 		// volta pra forma de vetor
 		for (i = 0; i < 3; i++)
 			for (j = 0; j < 2*this.t; j++)
@@ -140,41 +190,55 @@ public class KeyScheduler {
         return result;
     }
 
-    private byte[] mi(byte[] b) {
+    private static byte[] mi(byte[] b) {
         
     	int i, j;
     	byte c = 0x1C; // c(x) = x^4 + x^3 + x^2
-    	byte[][] mb = new byte[3][2*this.t];
-    	byte[][] e = new byte[3][3];
+    	BigInteger[][] mb = new BigInteger[3][2*2];
+    	BigInteger[][] e = new BigInteger[3][3];
     	
     	// matriz E = I + C
     	for (i = 0; i < 3; i++)
     		for (j = 0; j < 3; j++) {
-    			e[i][j] = c;
+    			e[i][j] = BigInteger.valueOf(c);
     			if (i == j)
-    				e[i][j] += (byte)1;
+    				e[i][j] = e[i][j].add(BigInteger.valueOf(1));
     		}
+    	
+        for (i=0; i<3; i++) {
+            for (j=0; j<3; j++)
+                System.out.print(Integer.toHexString((short)(0x000000FF & e[i][j].byteValue())) + " ");
+            System.out.println("");
+        }
     	
     	// matriz de b
     	for (i = 0; i < 3; i++)
-    		for (j = 0; j < 2*this.t; j++)
-    			mb[i][j] = b[i + 3*j];  
+    		for (j = 0; j < 2*2; j++)
+    			mb[i][j] = BigInteger.valueOf(b[i + 3*j]);  
+
+        for (i=0; i<3; i++) {
+            for (j=0; j<4; j++)
+                System.out.print(Integer.toHexString((short)(0x000000FF & mb[i][j].byteValue())) + " ");
+            System.out.println("");
+        }
     	
     	// multiplica
-        byte[][] mc = new byte[3][2*this.t];
-        for (i = 0; i < 3; i++) {
-            for (j = 0; j < 3; j++) {
-                for (int k = 0; k < 2*this.t; k++)
-                    mc[i][j] += (byte) (e[i][j] * mb[j][k]);
-            }
-        }
+        BigInteger[][] mc = new BigInteger[3][2*2];
+        for (i = 0; i < 3; i++)
+            for (j = 0; j < 2*2; j++)
+            	mc[i][j] = BigInteger.valueOf(0);
+        
+        for (i = 0; i < 3; i++) 
+            for (j = 0; j < 2*2; j++) 
+                for (int k = 0; k < 3; k++)
+                    mc[i][j] = mc[i][j].add(e[i][k].multiply(mb[k][j]));
         
         // volta pra forma de vetor
-        byte[] result = new byte[3*2*this.t];
+        byte[] result = new byte[3*2*2];
     	for (i = 0; i < 3; i++)
-    		for (j = 0; j < 2*this.t; j++)
-    			result[i + 3*j] = mc[i][j];  
-        
+    		for (j = 0; j < 2*2; j++)
+    			result[i + 3*j] = mc[i][j].byteValue();  
+    	
         return result;
     }
     
@@ -198,7 +262,6 @@ public class KeyScheduler {
     		for (j = 0; j < 4; j++)
     			key[i + 3*j] = K[i + 3*j]; 
 
-    	System.out.println("FI DONE!!!!!");
         return key;
     }
     
