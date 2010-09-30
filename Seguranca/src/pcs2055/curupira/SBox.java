@@ -14,16 +14,10 @@ public class SBox {
 
     	uh = P[(u >>> 4) & 0x0F];
     	ul = Q[u & 0x0F];
-    	//System.out.println("u = " + u + "   ; uh = " + uh);
-    	//System.out.println("u = " + u + "   ; ul = " + ul);
     	uh2 = Q[(uh & 0x0C)^((ul >>> 2) & 0x03)];
 		ul2 = P[((uh << 2) & 0x0C)^(ul & 0x03)];
-		//System.out.println("uh2 = " + uh2);
-    	//System.out.println("ul2 = " + ul2);
 		uh = P[(uh2 & 0x0C)^((ul2 >>> 2) & 0x03)];
 		ul = Q[((uh2 << 2) & 0x0C)^(ul2 & 0x03)];
-		//System.out.println("uh = " + uh);
-    	//System.out.println("ul = " + ul);
 
 		return (byte)((uh << 4)^ul);
     }

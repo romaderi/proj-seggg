@@ -13,6 +13,7 @@ public class Round {
     	ByteUtil.printArray(result);
     	
         return result;
+    	//return null;
     }
     
     
@@ -73,19 +74,42 @@ public class Round {
     	return result;
     }
     
-    private static byte[] teta(byte[] a) {
-
-    	int n = 4;
-    	byte[] MDS = {3, 4, 6, 2, 5, 6, 2, 4, 7};
-        return ByteUtil.mult3xn(MDS, a, n);
+    private static byte[] alg2 (byte[] a){
+    	
+    	byte v = ByteUtil.xtimes((byte)(a[0] ^ a[1] ^ a[2]));
+    	byte w = ByteUtil.xtimes(v);
+    	byte[] b = new byte[3];
+    	b[0] = (byte)(a[0] ^ v);
+    	b[1] = (byte)(a[1] ^ w);
+    	b[2] = (byte)(a[2] ^ v ^ w);
+    	return b;
     }
     
-    private static byte[] sigma(byte[] a, byte[] subkey) {
+    private static byte[] teta(byte[] a) {
+
+    	byte[] b0 = new byte[3];
+    	byte[] b = new byte[12];
+
+    	for (int j = 0; j < 4; j++) {
+    		b0[0] = a[3*j];
+    		b0[1] = a[3*j + 1];
+    		b0[2] = a[3*j + 2];
+    		b0 = alg2(b0);
+    		b[3*j] = b0[0];
+    		b[3*j + 1] = b0[1];
+    		b[3*j + 2] = b0[2];
+    	}
+    	
+    	return b;
+    	/*
+    	int n = 4;
+    	byte[] MDS = {3, 4, 6, 2, 5, 6, 2, 4, 7};
+        return ByteUtil.mult3xn(MDS, a, n);*/
+    }
+    
+    public static byte[] sigma(byte[] a, byte[] subkey) {
         
-    	//System.out.println("SIGMA (ROUND) BEGIN");
-    	//ByteUtil.printArray(a);
-    	//ByteUtil.printArray(subkey);
-        return ByteUtil.xor(a, subkey, 12);
+    	return ByteUtil.xor(a, subkey, 12);
     }
 
 }
