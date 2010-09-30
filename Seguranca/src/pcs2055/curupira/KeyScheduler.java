@@ -200,7 +200,7 @@ public class KeyScheduler {
     	if (this.mode == Mode.ENCRYPTING) {
     		v = ByteUtil.ctimes(v);
     	} else {
-    		v = (byte)(ByteUtil.ctimes(v) ^ v);
+    		v = (byte)((ByteUtil.ctimes(v)) ^ v);
     	}
     	
     	ByteUtil.printArray(a);
