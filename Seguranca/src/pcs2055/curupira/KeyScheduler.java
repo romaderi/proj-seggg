@@ -1,6 +1,6 @@
 package pcs2055.curupira;
 
-import java.math.BigInteger;
+import java.util.Arrays;
 
 import pcs2055.math.ByteUtil;
 
@@ -137,14 +137,13 @@ public class KeyScheduler {
     
     private byte[] sigma(byte[] b) {
     	
-    	byte[] result = b.clone();
     	byte[] q = scheduleConstant(this.round, this.t);
-    	return ByteUtil.xor(result, q, 48/8*t);
+    	return ByteUtil.xor(b, q, b.length);
     }
     
     private byte[] csi(byte[] b) {
         
-    	byte[] result = b.clone();
+        byte[] result = Arrays.copyOf(b, b.length); 
     	byte[][] key = new byte[3][2*this.t];
     	
     	// transforma em matriz
