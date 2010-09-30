@@ -50,6 +50,17 @@ public class Round {
         return block;
     }
     
+    public static byte[] sct(byte[] b) {
+
+        // SCT é um nome emo pra aplicar (θ o π o γ) um certo número de vezes, 
+        // sem σ[κ] (portanto, sem chave).
+        // by @pbarreto
+
+        byte[] gama = gama(b);
+        byte[] pi = pi(gama);
+        return teta(pi);
+    }
+    
     private static byte[] gama(byte[] a) {
         
     	byte[] b = new byte[12];

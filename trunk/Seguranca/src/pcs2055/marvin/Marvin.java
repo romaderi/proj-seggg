@@ -73,7 +73,7 @@ public class Marvin implements MAC {
         byte[] Ai = null; 
         byte[] rpad = ByteUtil.rpad(aData, n);
         byte[] mBlock = ByteUtil.xor(rpad, Oi, n);
-        this.cipher.sct(Ai, mBlock); // confirmar posição dos parâmetros
+        this.cipher.sct(Ai, mBlock); 
         
         // corresponde a um passo da somatória da linha 7
         this.A = ByteUtil.xor(this.A, Ai, n);
