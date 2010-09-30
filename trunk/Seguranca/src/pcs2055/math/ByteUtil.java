@@ -6,12 +6,19 @@ public class ByteUtil {
 
     public static byte[] lpad(byte[] b, int n) {
         
-        return null;
+        byte[] pad = new byte[n/8];
+        int z = n - b.length;
+        for (int i=0; i<b.length; i++)
+            pad[z + i] = b[i];        
+        return pad;
     }
 
     public static byte[] rpad(byte[] b, int n) {
-        
-        return null;
+
+        byte[] pad = new byte[n/8];
+        for (int i=0; i<b.length; i++)
+            pad[i] = b[i];
+        return pad;
     }
 
     public static byte[] bin(byte[] b, int n) {
