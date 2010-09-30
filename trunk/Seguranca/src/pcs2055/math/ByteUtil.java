@@ -162,7 +162,7 @@ public class ByteUtil {
     }
 
     public static byte ctimes (byte b){
-    	return xtimes(xtimes((byte)(xtimes((byte)(xtimes(b)^b))^b)));
+    	return xtimes(xtimes((byte)(xtimes((byte)((xtimes(b))^b))^b)));
     }
     
 }
