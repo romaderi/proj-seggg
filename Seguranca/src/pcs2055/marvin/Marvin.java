@@ -1,6 +1,7 @@
 package pcs2055.marvin;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 
 import pcs2055.interfaces.BlockCipher;
 import pcs2055.interfaces.MAC;
@@ -15,7 +16,7 @@ public class Marvin implements MAC {
     private byte[] key;
     private int keyBits;
     private byte[] R;
-    private int i = 1;
+    private byte[] Oi; // valor acumulado 
     private byte[] A; // valor acumulado
     private int mLength = 0;
     
@@ -41,16 +42,22 @@ public class Marvin implements MAC {
         // linha 2 do algoritmo 1
         byte[] cBlock = null;
         byte[] carray = {c};
-        byte[] mBlock = ByteUtil.lpad(carray, this.cipher.blockBits());
+        byte[] mBlock = ByteUtil.lpad(carray, this.cipher.blockBits()); // lpad(c)
         this.cipher.encrypt(mBlock, cBlock);
         BigInteger r = new BigInteger(cBlock).xor(new BigInteger(mBlock));
         this.R = r.toByteArray(); 
+        
+        // inicializa Oi (linha 4)
+        this.Oi = Arrays.copyOf(this.R, this.R.length);
+        this.A = new byte[this.cipher.blockBits()/8];
     }
     
     @Override
     public void init(byte[] R) {
 
         this.R = R;
+        this.Oi = Arrays.copyOf(this.R, this.R.length);
+        this.A = new byte[this.cipher.blockBits()/8];
     }
 
     @Override
@@ -59,21 +66,17 @@ public class Marvin implements MAC {
         // linha 4 do algoritmo 1
         
         // Oi <- R . (x^w)^i
-        int w = this.cipher.blockBits();
-        byte[] Oi = new byte[w]; 
-        for (int k=0; k<this.i; k++)    
-            Oi = MathUtil.xtimes(this.R, w);
+        this.Oi = MathUtil.mult_xw_gf8(this.Oi);
         
         // Ai <- sct (rpad(Mi) xor Oi)
+        int n = this.cipher.blockBits();
         byte[] Ai = null; 
-        BigInteger m = new BigInteger(ByteUtil.rpad(aData, w)).xor(new BigInteger(Oi));
-        byte[] mBlock = m.toByteArray();
+        byte[] rpad = ByteUtil.rpad(aData, n);
+        byte[] mBlock = ByteUtil.xor(rpad, Oi, n);
         this.cipher.sct(Ai, mBlock); // confirmar posição dos parâmetros
-        BigInteger a = new BigInteger(this.A).xor(new BigInteger(Ai));
         
         // corresponde a um passo da somatória da linha 7
-        this.A = a.toByteArray();
-        this.i++;
+        this.A = ByteUtil.xor(this.A, Ai, n);
         this.mLength += aLength;
     }
     
@@ -88,8 +91,8 @@ public class Marvin implements MAC {
         
         // A = Somatória(Ai), i = 0, 1, ..., t
         // aqui na verdade só fazemos o passo de fazer o xor com A0 (i=0)
-        BigInteger a = new BigInteger(this.A).xor(new BigInteger(A0));
-        this.A = a.toByteArray();
+        int n = this.cipher.blockBits();
+        this.A = ByteUtil.xor(this.A, A0, n);
         
         // T <- Ek(A)[tau]
         byte[] cBlock = null;
@@ -106,13 +109,13 @@ public class Marvin implements MAC {
         
         // linha 6 do Algoritmo 1
         int n = this.cipher.blockBits();
-        BigInteger r = new BigInteger(this.R); // R
-        byte[] b = BigInteger.valueOf(n - tagBits).or(um).toByteArray();
-        BigInteger x = new BigInteger(ByteUtil.rpad(b, n)); // rpad(bin(n − tau) || 1)
-        byte[] modM = BigInteger.valueOf(this.mLength).toByteArray(); 
-        BigInteger y = new BigInteger(ByteUtil.lpad(modM, n)); // lpad(bin(|M|))
-
-        return r.xor(x).xor(y).toByteArray();
+        BigInteger bin = BigInteger.valueOf(n - tagBits);
+        bin = bin.shiftLeft(1).add(um); // bin(n-tau)||1
+        byte[] rpad = ByteUtil.rpad(bin.toByteArray(), n); // rpad(bin(n-tau)||1)
+        byte[] m = BigInteger.valueOf(8*this.mLength).toByteArray();
+        byte[] lpad = ByteUtil.lpad(m, n); // lpad(bin(|M|))
+        byte[] pad = ByteUtil.xor(rpad, lpad, n);
+        return ByteUtil.xor(this.R, pad, n);
     }
 
 
