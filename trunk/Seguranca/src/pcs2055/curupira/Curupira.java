@@ -90,8 +90,14 @@ public class Curupira implements BlockCipher {
 
     @Override
     public void sct(byte[] cBlock, byte[] mBlock) {
-        
-       cBlock = Round.sct(mBlock); 
+
+       // SCT = 4 rodadas do Curupira, *sem* adição de chave.
+       // by @pbarreto
+       
+       cBlock = Round.sct(mBlock);
+       for (int i=0; i<3; i++) {
+           cBlock = Round.sct(cBlock);
+       }
     }
 
 }
