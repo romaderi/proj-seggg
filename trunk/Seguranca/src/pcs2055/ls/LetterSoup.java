@@ -1,11 +1,13 @@
 package pcs2055.ls;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 
 import pcs2055.interfaces.AED;
 import pcs2055.interfaces.BlockCipher;
 import pcs2055.interfaces.MAC;
 import pcs2055.math.ByteUtil;
+import pcs2055.math.MathUtil;
 
 public class LetterSoup implements AED {
     
@@ -16,7 +18,7 @@ public class LetterSoup implements AED {
     private byte[] iv;
     private int ivLength;
     private byte[] R;
-    private byte[] A; // autenticação acumulada
+    //private byte[] A; // autenticação acumulada
     private byte[] cData;
     
     @Override
@@ -59,17 +61,25 @@ public class LetterSoup implements AED {
     public byte[] encrypt(byte[] mData, int mLength, byte[] cData) {
 
         // criptografa e autentica mensagem
+        this.cipher.makeKey(this.key, this.keyBits);
+        this.mac.setCipher(this.cipher);
+        this.mac.setKey(this.key, this.keyBits);
+        this.mac.init();
+
+        // R <- Ek(lpad(bin(N))) xor lpad(bin(N))
+        int n = this.cipher.blockBits();
+        byte[] lpad = ByteUtil.lpad(this.iv, n);
+        byte[] ek = null;
+        this.cipher.encrypt(lpad, ek);
+        this.R = ByteUtil.xor(ek, lpad, n);
         
         // C <- LFSRC(R, M, K)
-        cData = lfsrc(cData, mData, this.key);
+        cData = this.lfsrc(this.R, mData);
         this.cData = cData;
-        
-        // A <- ∗ (R, C, tau)
-        this.mac.update(mData, mLength);
-        
+                
         return cData;
     }
-
+    
     @Override
     public byte[] decrypt(byte[] cData, int cLength, byte[] mData) {
 
@@ -105,13 +115,49 @@ public class LetterSoup implements AED {
     public byte[] getTag(byte[] tag, int tagBits) {
 
         // T <- Ek(A)[tau]
-
-        this.mac.getTag(tag, tagBits);
+        
+        byte[] A = null;
+        A = this.mac.getTag(A, tagBits);
+        
         return tag;
     }
 
-    private static byte[] lfsrc(byte[] R, byte[]M, byte[]K) {
+    /**
+     * Linear feedback shift register counter
+     * Algoritmo 8
+     * @param N nounce
+     * @param M message
+     * @param K chave
+     * @return ciphertext od M under K
+     */
+    private byte[] lfsrc(byte[] N, byte[] M) {
         
-        return null;
+        int n = this.cipher.blockBits();
+        int t = (int) Math.ceil(8*M.length / n);
+        
+        byte[] Oi = Arrays.copyOf(N, n/8);
+        byte[] C = new byte[0];
+        for (int i=0; i<t; i++) {
+            Oi = MathUtil.mult_xw_gf8(Oi); // Oi <- N.(x^w)^i
+            byte[] ekoi = null;
+            this.cipher.encrypt(Oi, ekoi);
+            ekoi = Arrays.copyOf(ekoi, n); 
+            int a = i*n/8;
+            int b;
+            if (i != t-1)
+                b = i*n/8 + n/8;
+            else
+                b = M.length; 
+            byte[] Mi = Arrays.copyOfRange(M, a, b);
+            byte[] Ci = ByteUtil.xor(Mi, ekoi, n); // Ci <- M xor El(Oi)[|mi|]
+        
+            // quadradinho asterisco...
+            // A <- ∗ (R, C, tau)
+            this.mac.update(Ci, b-a);
+            
+            C = ByteUtil.append(C, Ci, C.length, n); // C <- C1||...||C2
+        }
+        
+        return C;
     }
 }

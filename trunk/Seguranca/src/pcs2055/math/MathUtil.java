@@ -2,8 +2,6 @@ package pcs2055.math;
 
 import java.math.BigInteger;
 
-import sun.security.util.BigInt;
-
 public class MathUtil {
     
     // GF(8)
@@ -13,23 +11,6 @@ public class MathUtil {
         return 0;
     }
     
-    // curupira
-    
-    // marvin
-    
-    // letter soup
-    
-
-    public static byte[] bin(int n) {
-        
-        return null;
-    }
-    
-    public static byte[] lfsrc(byte[] b) {
-        
-        return null;
-    }
-
     /**
      * Wordwise multiplication by x^w in GF(2^n)
      * Algoritmo 6
