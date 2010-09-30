@@ -4,6 +4,12 @@ import java.math.BigInteger;
 
 public class ByteUtil {
 
+    /**
+     * 
+     * @param b
+     * @param n bits
+     * @return
+     */
     public static byte[] lpad(byte[] b, int n) {
         
         byte[] pad = new byte[n/8];
@@ -13,6 +19,12 @@ public class ByteUtil {
         return pad;
     }
 
+    /**
+     * 
+     * @param b
+     * @param n bits
+     * @return
+     */
     public static byte[] rpad(byte[] b, int n) {
 
         byte[] pad = new byte[n/8];
@@ -32,6 +44,16 @@ public class ByteUtil {
         for (int i=0; i<length; i++)
             c[i] = (byte) (a[i] + b[i]);
         
+        return c;
+    }
+    
+    public static byte[] append(byte[] a, byte[] b, int lenA, int lenB) {
+        
+        byte[] c = new byte[lenA + lenB];
+        for (int i=0; i<lenA; i++)
+            c[i] = a[i];
+        for (int i=0; i<lenB; i++)
+            c[i+lenA] = b[i];        
         return c;
     }
 
