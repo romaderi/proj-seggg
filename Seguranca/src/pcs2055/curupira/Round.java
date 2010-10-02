@@ -6,7 +6,12 @@ import pcs2055.curupira.SBox;
 public class Round {
         
     public static byte[] initialKeyAddition(byte[] block, byte[] subkey) {
-        
+    	
+    	System.out.print("** INITIAL BLOCK -> ");
+    	ByteUtil.printArray(block);
+    	System.out.print("** INITIAL KEY -> ");
+    	ByteUtil.printArray(subkey);
+    	
     	byte[] result = sigma(block, subkey);
 
     	System.out.print("INITIAL KEY ADDITION -> ");
@@ -18,33 +23,31 @@ public class Round {
     
     public static byte[] roundFunction(byte[] block, byte[] subkey) {
         
-    	System.out.println("***ROUND BEGIN!!!!!");
         block = gama(block);
-    	System.out.print(" GAMA -> ");
-    	ByteUtil.printArray(block);
+    	//System.out.print(" GAMA -> ");
+    	//ByteUtil.printArray(block);
         block = pi(block);
-    	System.out.print(" PI -> ");
-    	ByteUtil.printArray(block);
+    	//System.out.print(" PI -> ");
+    	//ByteUtil.printArray(block);
         block = teta(block);
-    	System.out.print(" TETA -> ");
-    	ByteUtil.printArray(block);
+    	//System.out.print(" TETA -> ");
+    	//ByteUtil.printArray(block);
         block = sigma(block, subkey);
-    	System.out.print(" SIGMA -> ");
+    	System.out.print(" TEXT -> ");
     	ByteUtil.printArray(block);
         return block;
     }
     
     public static byte[] lastRoundFunction(byte[] block, byte[] subkey) {
     	
-    	System.out.println("+++++ LAST ROUND BEGIN");
         block = gama(block);
-    	System.out.print(" GAMA -> ");
-    	ByteUtil.printArray(block);
+    	//System.out.print(" GAMA -> ");
+    	//ByteUtil.printArray(block);
         block = pi(block);
-    	System.out.print(" PI -> ");
-    	ByteUtil.printArray(block);
+    	//System.out.print(" PI -> ");
+    	//ByteUtil.printArray(block);
         block = sigma(block, subkey);
-    	System.out.print(" SIGMA -> ");
+    	System.out.print(" TEXT -> ");
     	ByteUtil.printArray(block);
         return block;
     }
@@ -119,7 +122,7 @@ public class Round {
     
     public static byte[] sigma(byte[] a, byte[] subkey) {
         
-    	return ByteUtil.xor(a, subkey, 12);
+    	return ByteUtil.xor(a, subkey, a.length);
     }
 
 }

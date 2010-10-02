@@ -26,14 +26,23 @@ public class Curupira implements BlockCipher {
         // algoritmo de acordo com fórmula da pg 9 (item 3.9)
 
         KeyScheduler keyScheduler = new KeyScheduler(this.key, this.keyBits, 
-                KeyScheduler.Mode.DECRYPTING, this.roundMax);
+                KeyScheduler.Mode.DECRYPTING, this.roundMax);     
         
-        mBlock = Round.initialKeyAddition(cBlock, keyScheduler.nextSubKey());
-        for (int r=1; r <= this.roundMax-1; r++) {
-            
-            mBlock = Round.roundFunction(mBlock, keyScheduler.nextSubKey());
+        byte[] nextKey = new byte[this.key.length];
+        
+        mBlock = Round.initialKeyAddition(cBlock, keyScheduler.getSubKey(this.roundMax));
+        for (int r = this.roundMax-1; r > 0; r--) {
+        	System.out.println("---->>>>> Round " + r);
+        	nextKey = keyScheduler.getSubKey(this.roundMax-r);
+           	System.out.print(" KEY -> ");
+        	ByteUtil.printArray(nextKey);
+            mBlock = Round.roundFunction(mBlock, nextKey);
         }
-        mBlock = Round.lastRoundFunction(mBlock, keyScheduler.nextSubKey());        
+        System.out.println("---->>>>> Round 0");
+    	nextKey = keyScheduler.getSubKey(0);
+       	System.out.print(" KEY -> ");
+    	ByteUtil.printArray(nextKey);
+        mBlock = Round.lastRoundFunction(mBlock, nextKey);        
     }
 
     @Override
@@ -51,11 +60,10 @@ public class Curupira implements BlockCipher {
         for (int r=1; r <= this.roundMax-1; r++) {
         	System.out.println("---->>>>> Round " + r);
         	nextkey = keyScheduler.nextSubKey();
-        	System.out.print("KEY -> ");
-        	ByteUtil.printArray(nextkey);
         	cBlock = Round.roundFunction(cBlock, nextkey);
             //cBlock = Round.roundFunction(cBlock, keyScheduler.nextSubKey());
         }
+        System.out.println("---->>>>> Round " + this.roundMax);
         cBlock = Round.lastRoundFunction(cBlock, keyScheduler.nextSubKey());
         System.out.print("CHYPERTEXT -> ");
     	ByteUtil.printArray(cBlock);
