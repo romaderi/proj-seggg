@@ -158,6 +158,9 @@ public class ByteUtil {
     }
     
     public static byte xtimes (byte b){
+    	int i = (int)(b) & 0xFF;
+    	if ( b < 0)
+    		return (byte)((b << 1) ^ 0x4D); 
     	return (byte)(b << 1);
     }
 

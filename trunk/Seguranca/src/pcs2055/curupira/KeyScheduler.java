@@ -36,13 +36,43 @@ public class KeyScheduler {
         }
     }
     
+    public byte[] getSubKey (int round) {
+    	
+    	if (round == 0)
+    		return fi(this.key);
+    	
+    	byte[] block = new byte[48*this.t];
+    	block = Arrays.copyOf(this.key, this.key.length);
+
+        int tmp = this.round;
+        this.round = 1;
+        
+    	block = sigma(this.key);
+        block = csi(block);
+        block = mi(block);
+    	
+        for (int i = 2; i <= round; i++){
+        	block = ByteUtil.xor(block, scheduleConstant(i, this.t), 
+        			block.length); // sigma
+            block = csi(block);
+            block = mi(block);
+    	}
+    	
+    	this.round = tmp;
+    	return fi(block);
+    	
+    }
+    
     public byte[] nextSubKey() {
         
         if (this.mode == Mode.ENCRYPTING)
             this.round++;
         else
             this.round--;
+        
+        
         /*
+        // Funcao para calculo em paralelo de K(r)
         byte[] o;
         if (round == 0)
         	o = this.key.clone();
@@ -52,38 +82,29 @@ public class KeyScheduler {
         		o = omega(o); 
         }
         
-        System.out.println("Round : " + this.round);
-        System.out.print("KEY : ");
-        ByteUtil.printArray(this.key);
-        System.out.print("OMEGA : ");
-        ByteUtil.printArray(o);
-        
         byte[] accSchdCst = accumulatedScheduleConstant(this.round);
-        
-        System.out.print("ACC SCHED CST : ");
-        ByteUtil.printArray(accSchdCst);
-        
-        
         byte[] keyStage = ByteUtil.add(o, accSchdCst, ((48/8)*this.t));
-        
-        System.out.print("KEYSTAGE ");
-        ByteUtil.printArray(keyStage);
         return fi(keyStage);
         */
         
+        if (this.round == 0) {
+        	this.currentSubKey = sigma(this.currentSubKey);
+        	return fi(this.currentSubKey);
+        }
+        
         byte[] block = new byte[48*this.t];
         block = sigma(this.currentSubKey);
-    	System.out.print(" KEY_SIGMA -> ");
-    	ByteUtil.printArray(block);
+    	//System.out.print(" KEY_SIGMA -> ");
+    	//ByteUtil.printArray(block);
         block = csi(block);
-    	System.out.print(" KEY_CSI -> ");
-    	ByteUtil.printArray(block);
+    	//System.out.print(" KEY_CSI -> ");
+    	//ByteUtil.printArray(block);
         this.currentSubKey = mi(block);
-    	System.out.print(" KEY_MI -> ");
-    	ByteUtil.printArray(this.currentSubKey);
+    	//System.out.print(" KEY_MI -> ");
+    	//ByteUtil.printArray(this.currentSubKey);
         byte[] currentKey = fi(this.currentSubKey);
-    	System.out.print(" KEY_FI -> ");
-    	ByteUtil.printArray(currentKey);
+    	//System.out.print(" KEY_FI -> ");
+    	//ByteUtil.printArray(currentKey);
         return currentKey;
     }
     
@@ -108,9 +129,6 @@ public class KeyScheduler {
         
         for (int j = 0; j < 2*this.t; j++)
         	q[0 + 3*j] = SBox.sbox16b((byte)(2*t*(s-1)+j));
-        
-        System.out.print("Schedule constant q : ");
-        ByteUtil.printArray(q);
         
         return q;
     }
@@ -137,8 +155,8 @@ public class KeyScheduler {
     
     private byte[] sigma(byte[] b) {
     	
-    	byte[] q = scheduleConstant(this.round, this.t);
-    	return ByteUtil.xor(b, q, b.length);
+    	byte[] q = scheduleConstant(this.round, this.t);   	
+     	return ByteUtil.xor(b, q, b.length);
     }
     
     private byte[] csi(byte[] b) {
@@ -202,10 +220,6 @@ public class KeyScheduler {
     		v = (byte)((ByteUtil.ctimes(v)) ^ v);
     	}
     	
-    	ByteUtil.printArray(a);
-    	System.out.print("ALG3 - v : ");
-    	System.out.println(Integer.toHexString((short)(0x000000FF & v)));
-
     	byte[] b = new byte[3];
     	b[0] = (byte)(a[0] ^ v);
     	b[1] = (byte)(a[1] ^ v);
@@ -228,70 +242,9 @@ public class KeyScheduler {
     		result[3*j + 1] = b0[1];
     		result[3*j + 2] = b0[2];
     	}
-    	
-    	ByteUtil.printArray(result);
-    	
+    	    	
     	return result;
-    	/*
-    	byte[] blinha0 = new byte[b.length/3];
-    	byte[] blinha1 = new byte[b.length/3];
-    	byte[] blinha2 = new byte[b.length/3];
     	
-    	for (int j = 0; j < b.length/3 ; j++) {
-    		blinha0[j] = b[3*j];
-    		blinha1[j] = b[3*j + 1];
-    		blinha2[j] = b[3*j + 2];
-    	}
-    	
-    	System.out.print("---> ");
-    	ByteUtil.printArray(blinha0);
-    	ByteUtil.printArray(blinha1);
-    	ByteUtil.printArray(blinha2);
-    	
-    	BigInteger b0 = new BigInteger(blinha0);
-    	BigInteger b1 = new BigInteger(blinha1);
-    	BigInteger b2 = new BigInteger(blinha2);
-    	BigInteger v;
-    	
-    	v = (b0.xor(b1)).xor(b2);
-    	
-    	System.out.println(v.byteValue());
-    	
-    	if (this.mode == Mode.ENCRYPTING) {
-    		v = ctimes(v);
-    	} else {
-    		v = (ctimes(v)).xor(v);
-    	}
-    	byte[] a0 = (b0.xor(v)).toByteArray();
-    	byte[] a1 = (b1.xor(v)).toByteArray();
-    	byte[] a2 = (b2.xor(v)).toByteArray();
-    	
-    	ByteUtil.printArray(a0);
-    	ByteUtil.printArray(a1);
-    	ByteUtil.printArray(a2);
-    	
-    	byte[] result = new byte[b.length];
-    	for (int j = 0; j < b.length/3; j++){
-    		try { result[3*j] = a0[j]; }
-    		catch(Exception e) {
-    			result[3*j] = (byte)0;
-    		}
-    	}
-    	for (int j = 0; j < b.length/3; j++){
-    		try { result[3*j + 1] = a1[j];
-    		} catch (Exception e) {
-    			result[3*j + 1] = (byte)0;
-    		}
-    	}
-    	for (int j = 0; j < b.length/3; j++){
-    		try { result[3*j + 2] = a2[j];
-    		} catch (Exception e) {
-    			result[3*j + 2] = (byte)0;
-    		}
-    	}
-    	
-    	return result;
-    	*/
     	/*
     	int i, j;
     	byte c = 0x1C; // c(x) = x^4 + x^3 + x^2
