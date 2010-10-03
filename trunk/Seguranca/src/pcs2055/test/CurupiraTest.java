@@ -27,7 +27,7 @@ public class CurupiraTest {
 			cypherKey[i] = (byte)0;
 			mBlock[i] = (byte)0x00;
 		}
-		mBlock[0] = (byte)0x80;
+		
 		/*
 		cypherKey[0] = (byte)0x23;
 		cypherKey[1] = (byte)0x87;

@@ -36,10 +36,35 @@ public class KeyScheduler {
         }
     }
     
+    public byte[] getInitialDecryptKey (int roundMax) {
+    	
+    	byte block[] = new byte[this.key.length];
+    	
+        this.round = 0;
+        this.mode = Mode.ENCRYPTING;
+        
+        block = sigma(this.key, 0);
+    	
+        this.round = 1;
+        for (int i = 1; i <= roundMax; i++){
+        	block = ByteUtil.xor(block, scheduleConstant(i, this.t), 
+        			block.length); // sigma
+            block = csi(block);
+            block = mi(block);
+    	}
+    	
+    	this.round = roundMax;
+    	this.mode = Mode.DECRYPTING;
+    	
+    	this.currentSubKey = block;
+    	
+    	return fi(block);
+    }
+    
     public byte[] getSubKey (int round) {
     	
     	if (round == 0)
-    		return fi(this.key);
+    		return fi(sigma(this.key, 0));
     	
     	byte[] block = new byte[48*this.t];
     	block = Arrays.copyOf(this.key, this.key.length);
@@ -47,7 +72,7 @@ public class KeyScheduler {
         int tmp = this.round;
         this.round = 1;
         
-    	block = sigma(this.key);
+    	block = sigma(this.key, this.round);
         block = csi(block);
         block = mi(block);
     	
@@ -57,22 +82,22 @@ public class KeyScheduler {
             block = csi(block);
             block = mi(block);
     	}
-    	
+        
+        this.currentSubKey = block;
+        
     	this.round = tmp;
     	return fi(block);
     	
     }
     
-    public byte[] nextSubKey() {
+    public byte[] nextSubKey(int roundMax) {
         
         if (this.mode == Mode.ENCRYPTING)
             this.round++;
         else
             this.round--;
         
-        
-        /*
-        // Funcao para calculo em paralelo de K(r)
+        /*// Funcao para calculo em paralelo de K(r)
         byte[] o;
         if (round == 0)
         	o = this.key.clone();
@@ -87,25 +112,37 @@ public class KeyScheduler {
         return fi(keyStage);
         */
         
-        if (this.round == 0) {
-        	this.currentSubKey = sigma(this.currentSubKey);
-        	return fi(this.currentSubKey);
+        int round;
+        if (this.mode == Mode.ENCRYPTING) {
+        	round = this.round;
+        } else {
+        	round = roundMax - this.round;
         }
         
-        byte[] block = new byte[48*this.t];
-        block = sigma(this.currentSubKey);
-    	//System.out.print(" KEY_SIGMA -> ");
-    	//ByteUtil.printArray(block);
+        System.out.print("LAST SUBKEY (round " + round + ") : ");
+        ByteUtil.printArray(this.currentSubKey);
+        
+        if (round == 0) {
+        	this.currentSubKey = sigma(this.key, 0);
+        	return fi(this.currentSubKey);
+        }
+
+        byte[] block = new byte[this.currentSubKey.length];
+        block = sigma(this.currentSubKey, round);
+        System.out.print(" q -> ");
+        ByteUtil.printArray(scheduleConstant(round, this.t));
+    	System.out.print(" KEY_SIGMA -> ");
+    	ByteUtil.printArray(block);
         block = csi(block);
-    	//System.out.print(" KEY_CSI -> ");
-    	//ByteUtil.printArray(block);
+    	System.out.print(" KEY_CSI -> ");
+    	ByteUtil.printArray(block);
         this.currentSubKey = mi(block);
-    	//System.out.print(" KEY_MI -> ");
-    	//ByteUtil.printArray(this.currentSubKey);
-        byte[] currentKey = fi(this.currentSubKey);
-    	//System.out.print(" KEY_FI -> ");
-    	//ByteUtil.printArray(currentKey);
-        return currentKey;
+    	System.out.print(" KEY_MI -> ");
+    	ByteUtil.printArray(this.currentSubKey);
+        byte[] currentKey = fi(teta(this.currentSubKey));
+    	System.out.print(" KEY_FI -> ");
+    	ByteUtil.printArray(currentKey);
+        return fi(teta(this.currentSubKey));
     }
     
     private byte[] omega(byte[] b) {
@@ -124,7 +161,7 @@ public class KeyScheduler {
     	for (int i = 0; i < 3*(2*t); i++)
     		q[i] = 0;
     	
-        if (this.round < 1)
+        if (s < 1)
         	return q;
         
         for (int j = 0; j < 2*this.t; j++)
@@ -153,9 +190,9 @@ public class KeyScheduler {
         return o;
     }
     
-    private byte[] sigma(byte[] b) {
+    private byte[] sigma(byte[] b, int round) {
     	
-    	byte[] q = scheduleConstant(this.round, this.t);   	
+    	byte[] q = scheduleConstant(round, this.t);   	
      	return ByteUtil.xor(b, q, b.length);
     }
     
@@ -214,11 +251,11 @@ public class KeyScheduler {
     private byte[] alg3 (byte[] a) {
     	
     	byte v = (byte)(a[0] ^ a[1] ^ a[2]);
-    	if (this.mode == Mode.ENCRYPTING) {
+    	//if (this.mode == Mode.ENCRYPTING) {
     		v = ByteUtil.ctimes(v);
-    	} else {
-    		v = (byte)((ByteUtil.ctimes(v)) ^ v);
-    	}
+    	//} else {
+    	//	v = (byte)((ByteUtil.ctimes(v)) ^ v);
+    	//}
     	
     	byte[] b = new byte[3];
     	b[0] = (byte)(a[0] ^ v);
@@ -319,6 +356,39 @@ public class KeyScheduler {
     			key[i + 3*j] = K[i + 3*j]; 
 
         return key;
+    }
+    
+    private static byte[] alg2 (byte[] a){
+    	
+    	byte v = ByteUtil.xtimes((byte)(a[0] ^ a[1] ^ a[2]));
+    	byte w = ByteUtil.xtimes(v);
+    	byte[] b = new byte[3];
+    	b[0] = (byte)(a[0] ^ v);
+    	b[1] = (byte)(a[1] ^ w);
+    	b[2] = (byte)(a[2] ^ v ^ w);
+    	return b;
+    }
+    
+    private static byte[] teta(byte[] a) {
+
+    	byte[] b0 = new byte[3];
+    	byte[] b = new byte[12];
+
+    	for (int j = 0; j < 4; j++) {
+    		b0[0] = a[3*j];
+    		b0[1] = a[3*j + 1];
+    		b0[2] = a[3*j + 2];
+    		b0 = alg2(b0);
+    		b[3*j] = b0[0];
+    		b[3*j + 1] = b0[1];
+    		b[3*j + 2] = b0[2];
+    	}
+    	
+    	return b;
+    	/*
+    	int n = 4;
+    	byte[] MDS = {3, 4, 6, 2, 5, 6, 2, 4, 7};
+        return ByteUtil.mult3xn(MDS, a, n);*/
     }
     
 
