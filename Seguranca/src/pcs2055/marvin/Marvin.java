@@ -83,8 +83,6 @@ public class Marvin implements MAC {
     @Override
     public byte[] getTag(byte[] tag, int tagBits) {
 
-        // tag ???
-
         // linhas 6, 7 e 8 do Algoritmo 1
         
         byte[] A0 = calculateA0(tagBits);
@@ -93,6 +91,8 @@ public class Marvin implements MAC {
         // aqui na verdade só fazemos o passo de fazer o xor com A0 (i=0)
         int n = this.cipher.blockBits();
         this.A = ByteUtil.xor(this.A, A0, n);
+        
+        tag = this.A; // MAC tag buffer
         
         // T <- Ek(A)[tau]
         byte[] cBlock = null;
