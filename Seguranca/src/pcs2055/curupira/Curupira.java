@@ -29,15 +29,20 @@ public class Curupira implements BlockCipher {
                 KeyScheduler.Mode.DECRYPTING, this.roundMax);     
         
         byte[] nextKey = new byte[this.key.length];
+        byte[] b =  new byte[this.key.length];
         
-        mBlock = Round.initialKeyAddition(cBlock, keyScheduler.getSubKey(this.roundMax));
+        mBlock = Round.initialKeyAddition(cBlock, keyScheduler.getInitialDecryptKey(this.roundMax));
+        
         for (int r = this.roundMax-1; r > 0; r--) {
         	System.out.println("---->>>>> Round " + r);
-        	nextKey = keyScheduler.getSubKey(this.roundMax-r);
+        	b = keyScheduler.nextSubKey(this.roundMax);
+        	//nextKey = keyScheduler.getSubKey(this.roundMax-r);
            	System.out.print(" KEY -> ");
-        	ByteUtil.printArray(nextKey);
+        	//ByteUtil.printArray(nextKey);
+        	ByteUtil.printArray(b);
             mBlock = Round.roundFunction(mBlock, nextKey);
         }
+        b = keyScheduler.nextSubKey(this.roundMax);
         System.out.println("---->>>>> Round 0");
     	nextKey = keyScheduler.getSubKey(0);
        	System.out.print(" KEY -> ");
@@ -53,18 +58,23 @@ public class Curupira implements BlockCipher {
         KeyScheduler keyScheduler = new KeyScheduler(this.key, this.keyBits, 
                 KeyScheduler.Mode.ENCRYPTING, this.roundMax);
         
-        cBlock = Round.initialKeyAddition(mBlock, keyScheduler.nextSubKey());
+        cBlock = Round.initialKeyAddition(mBlock, keyScheduler.nextSubKey(this.roundMax));
         
-        byte[] nextkey;
+        byte[] nextKey;
         
         for (int r=1; r <= this.roundMax-1; r++) {
         	System.out.println("---->>>>> Round " + r);
-        	nextkey = keyScheduler.nextSubKey();
-        	cBlock = Round.roundFunction(cBlock, nextkey);
+        	nextKey = keyScheduler.nextSubKey(this.roundMax);
+           	System.out.print(" KEY -> ");
+        	ByteUtil.printArray(nextKey);
+        	cBlock = Round.roundFunction(cBlock, nextKey);
             //cBlock = Round.roundFunction(cBlock, keyScheduler.nextSubKey());
         }
         System.out.println("---->>>>> Round " + this.roundMax);
-        cBlock = Round.lastRoundFunction(cBlock, keyScheduler.nextSubKey());
+        nextKey = keyScheduler.nextSubKey(this.roundMax);
+       	System.out.print(" KEY -> ");
+    	ByteUtil.printArray(nextKey);
+        cBlock = Round.lastRoundFunction(cBlock, nextKey);
         System.out.print("CHYPERTEXT -> ");
     	ByteUtil.printArray(cBlock);
     }
