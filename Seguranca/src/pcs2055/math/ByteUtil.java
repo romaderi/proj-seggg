@@ -12,10 +12,12 @@ public class ByteUtil {
      */
     public static byte[] lpad(byte[] b, int n) {
         
+        
         byte[] pad = new byte[n/8];
-        int z = n - b.length;
-        for (int i=0; i<b.length; i++)
+        int z = n/8 - b.length;
+        for (int i=0; i<b.length; i++) {
             pad[z + i] = b[i];        
+        }
         return pad;
     }
 
@@ -166,6 +168,25 @@ public class ByteUtil {
 
     public static byte ctimes (byte b){
     	return xtimes(xtimes((byte)(xtimes((byte)((xtimes(b))^b))^b)));
+    }
+    
+    /**
+     * imprime vetor em forma de matriz 3xn, 
+     * jogando os valores em coluna
+     * @param b
+     * @param length plz, múltiplo de 3!
+     */
+    public static void print3xn(byte[] b, int length) {
+        
+        int n = length / 3;
+        for (int i=0; i<3; i++) {
+            
+            for (int j=0; j<n; j++) {
+                System.out.printf("%x ", b[j*3 + i]);
+            }
+            System.out.println("");
+        }
+            
     }
     
 }

@@ -44,12 +44,15 @@ public class Marvin implements MAC {
         byte[] carray = {c};
         byte[] mBlock = ByteUtil.lpad(carray, this.cipher.blockBits()); // lpad(c)
         this.cipher.encrypt(mBlock, cBlock);
-        BigInteger r = new BigInteger(cBlock).xor(new BigInteger(mBlock));
-        this.R = r.toByteArray(); 
+        this.R = ByteUtil.xor(cBlock, mBlock, 12); 
+        
+        ByteUtil.print3xn(this.R, 12);
         
         // inicializa Oi (linha 4)
         this.Oi = Arrays.copyOf(this.R, this.R.length);
         this.A = new byte[this.cipher.blockBits()/8];
+        
+        ByteUtil.print3xn(this.Oi, 12);
     }
     
     @Override
