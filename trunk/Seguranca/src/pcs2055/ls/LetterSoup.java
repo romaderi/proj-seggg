@@ -1,6 +1,5 @@
 package pcs2055.ls;
 
-import java.math.BigInteger;
 import java.util.Arrays;
 
 import pcs2055.interfaces.AED;
@@ -9,17 +8,29 @@ import pcs2055.interfaces.MAC;
 import pcs2055.math.ByteUtil;
 import pcs2055.math.MathUtil;
 
+/**
+ * Ordem esperado de uso:
+ *   setKey
+ *   setCipher
+ *   setIV
+ *   setMAC
+ *   encrypt / decrypt (várias vezes)
+ *   update (várias vezes)
+ *   getTag
+ *
+ */
 public class LetterSoup implements AED {
     
     private BlockCipher cipher;
-    private MAC mac;
+    private MAC mac; 
     private byte[] key;
     private int keyBits;
     private byte[] iv;
     private int ivLength;
-    private byte[] R;
-    //private byte[] A; // autenticação acumulada
-    private byte[] cData;
+    
+    private byte[] R; // calculado na linha 2, usado na linha 3
+    private byte[] H; // texto associado
+    private byte[] cData; // texto cifrado
     
     @Override
     public void setCipher(BlockCipher cipher) {
@@ -37,17 +48,9 @@ public class LetterSoup implements AED {
     @Override
     public void setMAC(MAC mac) {
 
-        int n = 0; // ???
-        
         this.mac = mac;
-        
-        // R <- E K (lpad(bin(N))) xor lpad(bin(N))
-        this.R = null;
-        BigInteger a = new BigInteger(ByteUtil.lpad(this.iv, n));
-        BigInteger b = new BigInteger(a.toByteArray()); 
-        byte[] mBlock = a.xor(b).toByteArray(); 
-        this.cipher.encrypt(mBlock, this.R);
-        this.mac.init(this.iv);
+        this.mac.setCipher(this.cipher);
+        this.mac.setKey(this.key, this.keyBits);
     }
     
     @Override
@@ -60,24 +63,26 @@ public class LetterSoup implements AED {
     @Override
     public byte[] encrypt(byte[] mData, int mLength, byte[] cData) {
 
-        // criptografa e autentica mensagem
-        this.cipher.makeKey(this.key, this.keyBits);
-        this.mac.setCipher(this.cipher);
-        this.mac.setKey(this.key, this.keyBits);
-        this.mac.init();
+        // criptografa a mensagem
 
+        this.cipher.makeKey(this.key, this.keyBits);
+        
         // R <- Ek(lpad(bin(N))) xor lpad(bin(N))
-        int n = this.cipher.blockBits();
+        int n = this.cipher.blockBits(); // TODO: n?
         byte[] lpad = ByteUtil.lpad(this.iv, n);
         byte[] ek = null;
         this.cipher.encrypt(lpad, ek);
         this.R = ByteUtil.xor(ek, lpad, n);
         
         // C <- LFSRC(R, M, K)
-        cData = this.lfsrc(this.R, mData);
-        this.cData = cData;
-                
-        return cData;
+        cData = this.lfsrc(this.R, mData); // cData: ciphertext buffer for encrypted chunk
+        
+        // acumula buffer em this.cData
+        if (this.cData == null)
+            this.cData = new byte[0];
+        this.cData = ByteUtil.append(this.cData, cData, this.cData.length, mLength);
+        
+        return this.cData;
     }
     
     @Override
@@ -93,33 +98,74 @@ public class LetterSoup implements AED {
     @Override
     public void update(byte[] aData, int aLength) {
 
-        // autentica informação associada
+        // acumula mensgaem associada
+
+        // inicialização
+        if (this.H == null) {
+            this.H = new byte[0];
+        }
         
-        // L <- Ek(bin(0^n)) 
-        int n = 0;
-        byte[] L = null;
-        this.cipher.encrypt(ByteUtil.lpad(new byte[] {0}, n), L); // n???
-        
-        // D <- ∗ (L, H, tau)  
-        byte[] D = null;
-        this.mac.update(aData, aLength);
-        this.mac.getTag(D, this.tagBits); // tagBits ???
-        
-        // A <- (A xor sct(D))
-        byte[] d = null;
-        this.cipher.sct(d, D); // confirmar posição dos parâmetros
-        this.A = new BigInteger(this.A).xor(new BigInteger(d)).toByteArray();
+        this.H = ByteUtil.append(this.H, aData, this.H.length, aLength);
     }
 
     @Override
     public byte[] getTag(byte[] tag, int tagBits) {
+        
+        // autentica texto cifrado
+        byte[] A = cipherTag(tagBits);
+        
+        // autentica dado associado
+        byte[] D = associatedTag(tagBits);
+        
+        // calcula a resultante das autenticações
+        
+        // A <- (A xor sct(D))
+        int n = this.cipher.blockBits()/8;
+        byte[] sctD = null;
+        this.cipher.sct(sctD, D); // confirmar posição dos parâmetros
+        A = ByteUtil.xor(A, sctD, n); 
 
         // T <- Ek(A)[tau]
+        this.cipher.encrypt(A, tag); // tag: the MAC tag buffer
+        return Arrays.copyOfRange(tag, 0, tagBits/8);
+    }
+    
+    // calcula A (linha 3)
+    private byte[] cipherTag(int tagBits) {
         
+        int n = this.cipher.blockBits(); 
+
         byte[] A = null;
-        A = this.mac.getTag(A, tagBits);
+        this.mac.init(this.R);
+        for (int i=0; i < this.cData.length; i+=n) {
+            
+            byte[] aData = Arrays.copyOfRange(this.cData, i, i+n);
+            this.mac.update(aData, n);
+            this.mac.getTag(A, tagBits); // MAC Tag Buffer (parece lanche do McDonnads!)
+        }
         
-        return tag;
+        return A;
+    }
+
+    // calcula D (linha 5)
+    private byte[] associatedTag(int tagBits) {
+        
+        // L <- Ek(bin(0^n)) 
+        int n = this.cipher.blockBits();
+        byte[] L = null;
+        this.cipher.encrypt(ByteUtil.lpad(new byte[] {0}, n), L); // TODO: n???
+        
+        // D <- ∗ (L, H, tau)  
+        byte[] D = null;
+        this.mac.init(L);
+        for (int i=0; i < this.H.length; i+=n) {
+            
+            byte[] aData = Arrays.copyOfRange(this.H, i, i+n);
+            this.mac.update(aData, n);
+            this.mac.getTag(D, tagBits); 
+        }
+
+        return D;
     }
 
     /**
@@ -127,8 +173,7 @@ public class LetterSoup implements AED {
      * Algoritmo 8
      * @param N nounce
      * @param M message
-     * @param K chave
-     * @return ciphertext od M under K
+     * @return ciphertext of M under this.key
      */
     private byte[] lfsrc(byte[] N, byte[] M) {
         
@@ -138,7 +183,7 @@ public class LetterSoup implements AED {
         byte[] Oi = Arrays.copyOf(N, n/8);
         byte[] C = new byte[0];
         for (int i=0; i<t; i++) {
-            Oi = MathUtil.mult_xw_gf8(Oi); // Oi <- N.(x^w)^i
+            Oi = MathUtil.mult_xw_gf8(Oi); // Oi <- N.(x^w)^i, com w=8
             byte[] ekoi = null;
             this.cipher.encrypt(Oi, ekoi);
             ekoi = Arrays.copyOf(ekoi, n); 
