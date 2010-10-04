@@ -1,6 +1,7 @@
 package pcs2055.app;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.File;
@@ -475,6 +476,19 @@ public class App {
 						
 		} catch (Exception e) {
 			return null;
+		}
+	}
+	
+	public static int writeByteFile (String fileName, byte[] data){
+		try {
+			File file = new File(fileName);
+			BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+			bw.write(data.toString()); // arrumar pra copiar bytes
+			bw.close();
+			
+			return 0;
+		} catch (Exception e) {
+			return 1;
 		}
 	}
 	
