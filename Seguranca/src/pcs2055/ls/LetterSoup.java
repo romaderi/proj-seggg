@@ -70,17 +70,18 @@ public class LetterSoup implements AED {
         // R <- Ek(lpad(bin(N))) xor lpad(bin(N))
         int n = this.cipher.blockBits(); // TODO: n?
         byte[] lpad = ByteUtil.lpad(this.iv, n);
-        byte[] ek = null;
+        byte[] ek = new byte[n/8];
         this.cipher.encrypt(lpad, ek);
-        this.R = ByteUtil.xor(ek, lpad, n);
+        this.R = ByteUtil.xor(ek, lpad, n/8);
         
         // C <- LFSRC(R, M, K)
         cData = this.lfsrc(this.R, mData); // cData: ciphertext buffer for encrypted chunk
         
         // acumula buffer em this.cData
-        if (this.cData == null)
+        if (this.cData == null) {
             this.cData = new byte[0];
-        this.cData = ByteUtil.append(this.cData, cData, this.cData.length, mLength);
+        }
+        this.cData = ByteUtil.append(this.cData, cData, this.cData.length, cData.length);
         
         return this.cData;
     }
@@ -178,15 +179,14 @@ public class LetterSoup implements AED {
     private byte[] lfsrc(byte[] N, byte[] M) {
         
         int n = this.cipher.blockBits();
-        int t = (int) Math.ceil(8*M.length / n);
+        int t = (int) Math.ceil((double) 8*M.length / n);
         
         byte[] Oi = Arrays.copyOf(N, n/8);
         byte[] C = new byte[0];
         for (int i=0; i<t; i++) {
             Oi = MathUtil.mult_xw_gf8(Oi); // Oi <- N.(x^w)^i, com w=8
-            byte[] ekoi = null;
+            byte[] ekoi = new byte[n/8];
             this.cipher.encrypt(Oi, ekoi);
-            ekoi = Arrays.copyOf(ekoi, n); 
             int a = i*n/8;
             int b;
             if (i != t-1)
@@ -194,13 +194,10 @@ public class LetterSoup implements AED {
             else
                 b = M.length; 
             byte[] Mi = Arrays.copyOfRange(M, a, b);
-            byte[] Ci = ByteUtil.xor(Mi, ekoi, n); // Ci <- M xor El(Oi)[|mi|]
+            ekoi = Arrays.copyOf(ekoi, Mi.length); 
+            byte[] Ci = ByteUtil.xor(Mi, ekoi, Mi.length); // Ci <- M xor El(Oi)[|mi|]
         
-            // quadradinho asterisco...
-            // A <- ∗ (R, C, tau)
-            this.mac.update(Ci, b-a);
-            
-            C = ByteUtil.append(C, Ci, C.length, n); // C <- C1||...||C2
+            C = ByteUtil.append(C, Ci, C.length, Ci.length); // C <- C1||...||C2
         }
         
         return C;

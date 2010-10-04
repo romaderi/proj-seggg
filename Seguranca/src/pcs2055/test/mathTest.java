@@ -27,11 +27,17 @@ public class mathTest {
 //        byte[] b = {10, 11, 0xC, 0xD, 0xE, 0xF, 0x10, 0x11, 0x12};
 //        ByteUtil.print3xn(b, 9);
         
-        int n = 0x0;
-        String s = ByteUtil.bin(n);
-        System.out.println(s);
-        byte[] b = ByteUtil.binConcat1(n);
-        ByteUtil.printArray(b);
+//        int n = 0x0;
+//        String s = ByteUtil.bin(n);
+//        System.out.println(s);
+//        byte[] b = ByteUtil.binConcat1(n);
+//        ByteUtil.printArray(b);
+        
+        byte[] a = new byte[0];
+        byte[] b = new byte[]{0x33};
+        byte[] c = ByteUtil.append(a, b, a.length, 1);
+        ByteUtil.printArray(c);
+
     }
 
 }

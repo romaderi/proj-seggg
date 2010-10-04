@@ -58,6 +58,9 @@ public class Marvin implements MAC {
         this.R = R;
         this.Oi = Arrays.copyOf(this.R, this.R.length);
         this.A = new byte[this.cipher.blockBits()/8];
+        
+        System.out.println("Oi");
+        ByteUtil.print3xn(this.Oi, 12);
     }
 
     @Override
