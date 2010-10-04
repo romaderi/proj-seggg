@@ -26,11 +26,17 @@ public class LSTest {
         ls.setIV(nounce, 12);
         ls.setMAC(marvin);
 
-        byte[] cData = new byte[12];
+        byte[] cData = new byte[12]; // inútil aqui
         byte[] crypto = ls.encrypt(plainText, 23, cData);
         
         System.out.println("Ciphertext=");
         ByteUtil.printArray(crypto);
+        
+        byte[] tag = ls.getTag(cData, 12*8);
+
+        System.out.println("Tag=");
+        ByteUtil.printArray(tag);
+
     }
 
 }

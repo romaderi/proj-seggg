@@ -58,9 +58,6 @@ public class Marvin implements MAC {
         this.R = R;
         this.Oi = Arrays.copyOf(this.R, this.R.length);
         this.A = new byte[this.cipher.blockBits()/8];
-        
-        System.out.println("Oi");
-        ByteUtil.print3xn(this.Oi, 12);
     }
 
     @Override
@@ -95,11 +92,15 @@ public class Marvin implements MAC {
         // A = Somatória(Ai), i = 0, 1, ..., t
         // aqui na verdade só fazemos o passo de fazer o xor com A0 (i=0)
         int n = this.cipher.blockBits();
-        tag = ByteUtil.xor(this.A, A0, n/8); // MAC tag buffer
+        byte[] pretag = ByteUtil.xor(this.A, A0, n/8); // MAC tag buffer
+        
+        // "retorna" tag
+        for (int i=0; i<tagBits; i++)
+            tag[i] = pretag[i];
         
         // T <- Ek(A)[tau]
         byte[] cBlock = new byte[n/8];
-        this.cipher.encrypt(tag, cBlock);
+        this.cipher.encrypt(pretag, cBlock);
         byte[] T = new byte[tagBits/8];
         for (int k=0; k<tagBits/8; k++)
             T[k] = cBlock[k];
