@@ -143,21 +143,25 @@ public class LetterSoup implements AED {
         this.mac.init(this.R);
         for (int i=0; i < this.cData.length; i+=n) {
             
-            byte[] aData = Arrays.copyOfRange(this.cData, i, i+n);
-            this.mac.update(aData, n);
-            this.mac.getTag(A, tagBits/8); // MAC Tag Buffer (parece lanche do McDonnads!)
+            int b = i + n;
+            if (i+n > this.cData.length)
+                b = this.cData.length;
 
-            System.out.println("update A");
-            ByteUtil.printArray(A);
+            byte[] aData = Arrays.copyOfRange(this.cData, i, b);
+            this.mac.update(aData, b-i);
+            this.mac.getTag(A, tagBits); // MAC Tag Buffer (parece lanche do McDonnads!)
 
+            System.out.println("update A with");
+            ByteUtil.printArray(aData);
+            ByteUtil.print3xn(A, 12);
         }
         
         System.out.println("Afinal=");
-        ByteUtil.printArray(A);
+        ByteUtil.print3xn(A, 12);
         return A;
     }
 
-    // calcula D (linha 5)
+    // calcula D (quadradinho asterisco, linha 5)
     private byte[] associatedTag(int tagBits) {
         
         // L <- Ek(bin(0^n)) 
