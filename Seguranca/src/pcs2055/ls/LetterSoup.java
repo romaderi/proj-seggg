@@ -115,36 +115,45 @@ public class LetterSoup implements AED {
         // autentica texto cifrado
         byte[] A = cipherTag(tagBits);
         
-        // autentica dado associado
-        byte[] D = associatedTag(tagBits);
+        if (this.H != null && this.H.length>0) {
+
+            // autentica dado associado
+            byte[] D = associatedTag(tagBits);
         
-        // calcula a resultante das autenticações
-        
-        // A <- (A xor sct(D))
-        int n = this.cipher.blockBits()/8;
-        byte[] sctD = null;
-        this.cipher.sct(sctD, D); // confirmar posição dos parâmetros
-        A = ByteUtil.xor(A, sctD, n); 
+            // calcula a resultante das autenticações
+            
+            // A <- (A xor sct(D))
+            int n = this.cipher.blockBits()/8;
+            byte[] sctD = null;
+            this.cipher.sct(sctD, D); // confirmar posição dos parâmetros
+            A = ByteUtil.xor(A, sctD, n); 
+        }
 
         // T <- Ek(A)[tau]
         this.cipher.encrypt(A, tag); // tag: the MAC tag buffer
         return Arrays.copyOfRange(tag, 0, tagBits/8);
     }
     
-    // calcula A (linha 3)
+    // calcula A (quadradinho asterisco, linha 3)
     private byte[] cipherTag(int tagBits) {
         
-        int n = this.cipher.blockBits(); 
+        int n = this.cipher.blockBits()/8; 
 
-        byte[] A = null;
+        byte[] A = new byte[tagBits/8];
         this.mac.init(this.R);
         for (int i=0; i < this.cData.length; i+=n) {
             
             byte[] aData = Arrays.copyOfRange(this.cData, i, i+n);
             this.mac.update(aData, n);
-            this.mac.getTag(A, tagBits); // MAC Tag Buffer (parece lanche do McDonnads!)
+            this.mac.getTag(A, tagBits/8); // MAC Tag Buffer (parece lanche do McDonnads!)
+
+            System.out.println("update A");
+            ByteUtil.printArray(A);
+
         }
         
+        System.out.println("Afinal=");
+        ByteUtil.printArray(A);
         return A;
     }
 
