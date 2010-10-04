@@ -30,8 +30,9 @@ public class ByteUtil {
     public static byte[] rpad(byte[] b, int n) {
 
         byte[] pad = new byte[n/8];
-        for (int i=0; i<b.length; i++)
+        for (int i=0; i<b.length && i<n/8; i++) {
             pad[i] = b[i];
+        }
         return pad;
     }
 
@@ -121,8 +122,11 @@ public class ByteUtil {
     public static byte[] xor(byte[] a, byte[] b, int length) {
         
         byte[] c = new byte[length];
-        for (int i=0; i<length; i++)
-            c[i] = (byte) (a[i] ^ b[i]);
+        for (int i=0; i<length; i++) {
+            byte x = a[i];
+            byte y = b[i];
+            c[i] = (byte) (x ^ y);
+        }
         
         return c;
     }
