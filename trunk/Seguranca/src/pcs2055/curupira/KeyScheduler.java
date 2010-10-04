@@ -139,10 +139,10 @@ public class KeyScheduler {
         this.currentSubKey = mi(block);
     	System.out.print(" KEY_MI -> ");
     	ByteUtil.printArray(this.currentSubKey);
-        byte[] currentKey = fi(teta(this.currentSubKey));
+        byte[] currentKey = fi(this.currentSubKey);
     	System.out.print(" KEY_FI -> ");
     	ByteUtil.printArray(currentKey);
-        return fi(teta(this.currentSubKey));
+        return fi(this.currentSubKey);
     }
     
     private byte[] omega(byte[] b) {
