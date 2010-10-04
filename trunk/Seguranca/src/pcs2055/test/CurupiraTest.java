@@ -61,6 +61,8 @@ public class CurupiraTest {
 		cBlock[9] = (byte)0x5f;
 		cBlock[10] = (byte)0xfb;
 		cBlock[11] = (byte)0x3a;
+		for (int j=0; j < 12; j++)
+			mBlock[j] = (byte)0xFF;
 		
 		cur.decrypt(cBlock, mBlock);
 		ByteUtil.printArray(mBlock);

@@ -22,6 +22,11 @@ public class Round {
     
     
     public static byte[] roundFunction(byte[] block, byte[] subkey) {
+    	
+    	System.out.print(" RoundFunction -> ");
+    	ByteUtil.printArray(block);
+    	ByteUtil.printArray(subkey);
+    	
         
         block = gama(block);
     	//System.out.print(" GAMA -> ");

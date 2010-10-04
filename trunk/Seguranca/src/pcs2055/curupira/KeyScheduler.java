@@ -36,6 +36,7 @@ public class KeyScheduler {
         }
     }
     
+    /*
     public byte[] getInitialDecryptKey (int roundMax) {
     	
     	byte block[] = new byte[this.key.length];
@@ -59,7 +60,7 @@ public class KeyScheduler {
     	this.currentSubKey = block;
     	
     	return fi(block);
-    }
+    }*/
     
     public byte[] getSubKey (int round) {
     	
@@ -77,8 +78,9 @@ public class KeyScheduler {
         block = mi(block);
     	
         for (int i = 2; i <= round; i++){
-        	block = ByteUtil.xor(block, scheduleConstant(i, this.t), 
-        			block.length); // sigma
+        	block = sigma(block, i);
+        	//block = ByteUtil.xor(block, scheduleConstant(i, this.t), 
+        	//		block.length); // sigma
             block = csi(block);
             block = mi(block);
     	}
@@ -87,40 +89,26 @@ public class KeyScheduler {
         
     	this.round = tmp;
     	return fi(block);
-    	
+    }
+
+    public byte[] decryptKey (byte[] block, int round) {
+    	return teta(block);
     }
     
     public byte[] nextSubKey(int roundMax) {
-        
-        if (this.mode == Mode.ENCRYPTING)
-            this.round++;
-        else
-            this.round--;
-        
-        /*// Funcao para calculo em paralelo de K(r)
-        byte[] o;
-        if (round == 0)
-        	o = this.key.clone();
-        else {
-        	o = omega(this.key);
-        	for (int i=2; i<=round; i++)
-        		o = omega(o); 
-        }
-        
-        byte[] accSchdCst = accumulatedScheduleConstant(this.round);
-        byte[] keyStage = ByteUtil.add(o, accSchdCst, ((48/8)*this.t));
-        return fi(keyStage);
-        */
-        
-        int round;
+
+    	int round;
         if (this.mode == Mode.ENCRYPTING) {
-        	round = this.round;
-        } else {
-        	round = roundMax - this.round;
+            this.round++;
+            round = this.round;
+        }
+        else {
+            this.round--;
+            round = roundMax - this.round;
         }
         
-        System.out.print("LAST SUBKEY (round " + round + ") : ");
-        ByteUtil.printArray(this.currentSubKey);
+        //System.out.print("LAST SUBKEY (round " + round + ") : ");
+        //ByteUtil.printArray(this.currentSubKey);
         
         if (round == 0) {
         	this.currentSubKey = sigma(this.key, 0);
@@ -129,25 +117,26 @@ public class KeyScheduler {
 
         byte[] block = new byte[this.currentSubKey.length];
         block = sigma(this.currentSubKey, round);
-        System.out.print(" q -> ");
-        ByteUtil.printArray(scheduleConstant(round, this.t));
-    	System.out.print(" KEY_SIGMA -> ");
-    	ByteUtil.printArray(block);
+        //System.out.print(" q -> ");
+        //ByteUtil.printArray(scheduleConstant(round, this.t));
+    	//System.out.print(" KEY_SIGMA -> ");
+    	//ByteUtil.printArray(block);
         block = csi(block);
-    	System.out.print(" KEY_CSI -> ");
-    	ByteUtil.printArray(block);
+    	//System.out.print(" KEY_CSI -> ");
+    	//ByteUtil.printArray(block);
         this.currentSubKey = mi(block);
-    	System.out.print(" KEY_MI -> ");
-    	ByteUtil.printArray(this.currentSubKey);
-        byte[] currentKey = fi(this.currentSubKey);
-    	System.out.print(" KEY_FI -> ");
-    	ByteUtil.printArray(currentKey);
+    	//System.out.print(" KEY_MI -> ");
+    	//ByteUtil.printArray(this.currentSubKey);
+        //byte[] currentKey = fi(this.currentSubKey);
+    	//System.out.print(" KEY_FI -> ");
+    	//ByteUtil.printArray(currentKey);
         return fi(this.currentSubKey);
     }
     
+    /*
     private byte[] omega(byte[] b) {
         return mi(csi(b));
-    }
+    }*/
     
     /**
      * 
@@ -170,25 +159,6 @@ public class KeyScheduler {
         return q;
     }
     
-    /**
-     * 
-     * @param s round
-     * @return
-     */
-    private byte[] accumulatedScheduleConstant(int s) {
-        
-        //byte[] result = new byte[];
-        byte[] q;
-        byte[] o = new byte[48/8*this.t];
-        
-        for (int i=0; i<=s; i++)    
-            for (int j=1; j<=s-i+1; j++) {// s-i+1 ou s-i ???
-            	q = scheduleConstant(j, this.t);
-                o = ByteUtil.add(o, omega(q), 48/8*this.t); // soma de matrizes
-            }
-        
-        return o;
-    }
     
     private byte[] sigma(byte[] b, int round) {
     	
@@ -240,22 +210,11 @@ public class KeyScheduler {
         return result;
     }
     
-    /*
-    private BigInteger xtimes(BigInteger b){
-    	return b.shiftLeft(1);
-    }
-    private BigInteger ctimes(BigInteger b){
-    	return xtimes(xtimes(xtimes(xtimes(b).xor(b)).xor(b)));
-    }*/
-    
+    // Algoritmo 3, explicado no artigo do Curupira
     private byte[] alg3 (byte[] a) {
     	
     	byte v = (byte)(a[0] ^ a[1] ^ a[2]);
-    	//if (this.mode == Mode.ENCRYPTING) {
-    		v = ByteUtil.ctimes(v);
-    	//} else {
-    	//	v = (byte)((ByteUtil.ctimes(v)) ^ v);
-    	//}
+    	v = ByteUtil.ctimes(v);
     	
     	byte[] b = new byte[3];
     	b[0] = (byte)(a[0] ^ v);
@@ -281,58 +240,6 @@ public class KeyScheduler {
     	}
     	    	
     	return result;
-    	
-    	/*
-    	int i, j;
-    	byte c = 0x1C; // c(x) = x^4 + x^3 + x^2
-    	BigInteger[][] mb = new BigInteger[3][2*2];
-    	BigInteger[][] e = new BigInteger[3][3];
-    	
-    	// matriz E = I + C
-    	for (i = 0; i < 3; i++)
-    		for (j = 0; j < 3; j++) {
-    			e[i][j] = BigInteger.valueOf(c);
-    			if (i == j)
-    				e[i][j] = e[i][j].add(BigInteger.valueOf(1));
-    		}
-    	
-        for (i=0; i<3; i++) {
-            for (j=0; j<3; j++)
-                System.out.print(Integer.toHexString((short)(0x000000FF & e[i][j].byteValue())) + " ");
-            System.out.println("");
-        }
-    	
-    	// matriz de b
-    	for (i = 0; i < 3; i++)
-    		for (j = 0; j < 2*2; j++)
-    			mb[i][j] = BigInteger.valueOf(b[i + 3*j]);  
-
-        for (i=0; i<3; i++) {
-            for (j=0; j<4; j++)
-                System.out.print(Integer.toHexString((short)(0x000000FF & mb[i][j].byteValue())) + " ");
-            System.out.println("");
-        }
-    	
-    	// multiplica
-        BigInteger[][] mc = new BigInteger[3][2*2];
-        for (i = 0; i < 3; i++)
-            for (j = 0; j < 2*2; j++)
-            	mc[i][j] = BigInteger.valueOf(0);
-        
-        for (i = 0; i < 3; i++) 
-            for (j = 0; j < 2*2; j++) 
-                for (int k = 0; k < 3; k++)
-                    mc[i][j] = mc[i][j].add(e[i][k].multiply(mb[k][j]));
-        
-        // volta pra forma de vetor
-        byte[] result = new byte[3*2*2];
-    	for (i = 0; i < 3; i++)
-    		for (j = 0; j < 2*2; j++)
-    			result[i + 3*j] = mc[i][j].byteValue();  
-    	
-    	ByteUtil.printArray(result);
-    	
-        return result;*/
     }
     
     /**
@@ -357,7 +264,8 @@ public class KeyScheduler {
 
         return key;
     }
-    
+  
+    // Algoritmo 2, explicado no artigo do Curupira
     private static byte[] alg2 (byte[] a){
     	
     	byte v = ByteUtil.xtimes((byte)(a[0] ^ a[1] ^ a[2]));
@@ -385,10 +293,6 @@ public class KeyScheduler {
     	}
     	
     	return b;
-    	/*
-    	int n = 4;
-    	byte[] MDS = {3, 4, 6, 2, 5, 6, 2, 4, 7};
-        return ByteUtil.mult3xn(MDS, a, n);*/
     }
     
 
