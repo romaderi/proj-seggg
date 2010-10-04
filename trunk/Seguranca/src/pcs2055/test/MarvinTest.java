@@ -39,7 +39,8 @@ public class MarvinTest {
         marvin.update(chunk2, 12);
         marvin.update(chunk3, 12);
         marvin.update(chunk4, 10);
-        byte[] tag = marvin.getTag(null, 96);
+        byte[] tagFake = new byte[12];
+        byte[] tag = marvin.getTag(tagFake, 96);
         
         System.out.println("tag=");
         ByteUtil.printArray(tag);

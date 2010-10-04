@@ -95,8 +95,9 @@ public class Marvin implements MAC {
         byte[] pretag = ByteUtil.xor(this.A, A0, n/8); // MAC tag buffer
         
         // "retorna" tag
-        for (int i=0; i<tagBits; i++)
+        for (int i=0; i<tagBits/8; i++) {
             tag[i] = pretag[i];
+        }
         
         // T <- Ek(A)[tau]
         byte[] cBlock = new byte[n/8];
