@@ -40,18 +40,10 @@ public class Curupira implements BlockCipher {
         tempBlock = Round.initialKeyAddition(cBlock, nextKey);
         
         for (int r = this.roundMax-1; r > 0; r--) {
-        	nextKey = keyScheduler.decryptKey(key[r-1], this.roundMax-r);
-        	//System.out.println("---->>>>> Round " + (this.roundMax-r));
-           	//System.out.print(" KEY -> ");
-        	//ByteUtil.printArray(keyScheduler.decryptKey(key[r-1], this.roundMax-r));
-        	//System.out.print(" mBLOCK -> ");
-        	//ByteUtil.printArray(Round.roundFunction(mBlock, keyScheduler.decryptKey(key[r-1], this.roundMax-r)));
+        	nextKey = keyScheduler.teta(key[r-1]);
         	tempBlock = Round.roundFunction(tempBlock, nextKey);
         }
 
-        //System.out.println("---->>>>> Round 0");
-       	//System.out.print(" KEY -> ");
-    	//ByteUtil.printArray(keyScheduler.getSubKey(0));
         nextKey = keyScheduler.getSubKey(0);
         tempBlock = Round.lastRoundFunction(tempBlock, nextKey);
         
@@ -73,21 +65,12 @@ public class Curupira implements BlockCipher {
         byte[] nextKey;
         
         for (int r=1; r <= this.roundMax-1; r++) {
-        	System.out.println("---->>>>> Round " + r);
         	nextKey = keyScheduler.nextSubKey(this.roundMax);
-           	System.out.print(" KEY -> ");
-        	ByteUtil.printArray(nextKey);
         	tempBlock = Round.roundFunction(tempBlock, nextKey);
-            //cBlock = Round.roundFunction(cBlock, keyScheduler.nextSubKey());
         }
-        System.out.println("---->>>>> Round " + this.roundMax);
         nextKey = keyScheduler.nextSubKey(this.roundMax);
-       	System.out.print(" KEY -> ");
-    	ByteUtil.printArray(nextKey);
         tempBlock = Round.lastRoundFunction(tempBlock, nextKey);
-        System.out.print("CHYPERTEXT -> ");
-    	ByteUtil.printArray(tempBlock);
-    	
+
     	// nosso return bizarro
     	for (int i=0; i<this.blockBits()/8; i++)
     	    cBlock[i] = tempBlock[i];

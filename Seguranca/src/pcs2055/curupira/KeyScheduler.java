@@ -36,32 +36,6 @@ public class KeyScheduler {
         }
     }
     
-    /*
-    public byte[] getInitialDecryptKey (int roundMax) {
-    	
-    	byte block[] = new byte[this.key.length];
-    	
-        this.round = 0;
-        this.mode = Mode.ENCRYPTING;
-        
-        block = sigma(this.key, 0);
-    	
-        this.round = 1;
-        for (int i = 1; i <= roundMax; i++){
-        	block = ByteUtil.xor(block, scheduleConstant(i, this.t), 
-        			block.length); // sigma
-            block = csi(block);
-            block = mi(block);
-    	}
-    	
-    	this.round = roundMax;
-    	this.mode = Mode.DECRYPTING;
-    	
-    	this.currentSubKey = block;
-    	
-    	return fi(block);
-    }*/
-    
     public byte[] getSubKey (int round) {
     	
     	if (round == 0)
@@ -79,8 +53,6 @@ public class KeyScheduler {
     	
         for (int i = 2; i <= round; i++){
         	block = sigma(block, i);
-        	//block = ByteUtil.xor(block, scheduleConstant(i, this.t), 
-        	//		block.length); // sigma
             block = csi(block);
             block = mi(block);
     	}
@@ -89,10 +61,6 @@ public class KeyScheduler {
         
     	this.round = tmp;
     	return fi(block);
-    }
-
-    public byte[] decryptKey (byte[] block, int round) {
-    	return teta(block);
     }
     
     public byte[] nextSubKey(int roundMax) {
@@ -106,10 +74,7 @@ public class KeyScheduler {
             this.round--;
             round = roundMax - this.round;
         }
-        
-        //System.out.print("LAST SUBKEY (round " + round + ") : ");
-        //ByteUtil.printArray(this.currentSubKey);
-        
+               
         if (round == 0) {
         	this.currentSubKey = sigma(this.key, 0);
         	return fi(this.currentSubKey);
@@ -117,26 +82,10 @@ public class KeyScheduler {
 
         byte[] block = new byte[this.currentSubKey.length];
         block = sigma(this.currentSubKey, round);
-        //System.out.print(" q -> ");
-        //ByteUtil.printArray(scheduleConstant(round, this.t));
-    	//System.out.print(" KEY_SIGMA -> ");
-    	//ByteUtil.printArray(block);
         block = csi(block);
-    	//System.out.print(" KEY_CSI -> ");
-    	//ByteUtil.printArray(block);
         this.currentSubKey = mi(block);
-    	//System.out.print(" KEY_MI -> ");
-    	//ByteUtil.printArray(this.currentSubKey);
-        //byte[] currentKey = fi(this.currentSubKey);
-    	//System.out.print(" KEY_FI -> ");
-    	//ByteUtil.printArray(currentKey);
         return fi(this.currentSubKey);
     }
-    
-    /*
-    private byte[] omega(byte[] b) {
-        return mi(csi(b));
-    }*/
     
     /**
      * 
@@ -266,7 +215,7 @@ public class KeyScheduler {
     }
   
     // Algoritmo 2, explicado no artigo do Curupira
-    private static byte[] alg2 (byte[] a){
+    private byte[] alg2 (byte[] a){
     	
     	byte v = ByteUtil.xtimes((byte)(a[0] ^ a[1] ^ a[2]));
     	byte w = ByteUtil.xtimes(v);
@@ -277,7 +226,7 @@ public class KeyScheduler {
     	return b;
     }
     
-    private static byte[] teta(byte[] a) {
+    public byte[] teta(byte[] a) {
 
     	byte[] b0 = new byte[3];
     	byte[] b = new byte[12];
