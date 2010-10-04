@@ -58,7 +58,8 @@ public class Curupira implements BlockCipher {
         KeyScheduler keyScheduler = new KeyScheduler(this.key, this.keyBits, 
                 KeyScheduler.Mode.ENCRYPTING, this.roundMax);
         
-        cBlock = Round.initialKeyAddition(mBlock, keyScheduler.nextSubKey(this.roundMax));
+        byte[] tempBlock = new byte[this.keyBits/8];
+        tempBlock = Round.initialKeyAddition(mBlock, keyScheduler.nextSubKey(this.roundMax));
         
         byte[] nextKey;
         
@@ -67,16 +68,21 @@ public class Curupira implements BlockCipher {
         	nextKey = keyScheduler.nextSubKey(this.roundMax);
            	System.out.print(" KEY -> ");
         	ByteUtil.printArray(nextKey);
-        	cBlock = Round.roundFunction(cBlock, nextKey);
+        	tempBlock = Round.roundFunction(tempBlock, nextKey);
             //cBlock = Round.roundFunction(cBlock, keyScheduler.nextSubKey());
         }
         System.out.println("---->>>>> Round " + this.roundMax);
         nextKey = keyScheduler.nextSubKey(this.roundMax);
        	System.out.print(" KEY -> ");
     	ByteUtil.printArray(nextKey);
-        cBlock = Round.lastRoundFunction(cBlock, nextKey);
+        tempBlock = Round.lastRoundFunction(tempBlock, nextKey);
         System.out.print("CHYPERTEXT -> ");
-    	ByteUtil.printArray(cBlock);
+    	ByteUtil.printArray(tempBlock);
+    	
+    	// nosso return bizarro
+    	for (int i=0; i<this.blockBits()/8; i++)
+    	    cBlock[i] = tempBlock[i];
+    	
     }
 
     @Override
