@@ -110,10 +110,14 @@ public class Curupira implements BlockCipher {
        // SCT = 4 rodadas do Curupira, *sem* adição de chave.
        // by @pbarreto
        
-       cBlock = Round.sct(mBlock);
+       byte[] tempBlock = Round.sct(mBlock);
        for (int i=0; i<3; i++) {
-           cBlock = Round.sct(cBlock);
+           tempBlock = Round.sct(tempBlock);
        }
+       
+       // nuestro returni
+       for (int i=0; i<tempBlock.length; i++)
+           cBlock[i] = tempBlock[i];
     }
 
 }

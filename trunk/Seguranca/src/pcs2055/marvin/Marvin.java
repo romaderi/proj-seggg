@@ -66,21 +66,29 @@ public class Marvin implements MAC {
     @Override
     public void update(byte[] aData, int aLength) {
 
+        // aLength é em bytes
+        
         // linha 4 do algoritmo 1
         
         // Oi <- R . (x^w)^i
         this.Oi = MathUtil.mult_xw_gf8(this.Oi);
         
+        System.out.println("Oi=");
+        ByteUtil.print3xn(this.Oi, 12);
+        
         // Ai <- sct (rpad(Mi) xor Oi)
         int n = this.cipher.blockBits();
-        byte[] Ai = null; 
+        byte[] Ai = new byte[n/8]; 
         byte[] rpad = ByteUtil.rpad(aData, n);
-        byte[] mBlock = ByteUtil.xor(rpad, Oi, n);
+        byte[] mBlock = ByteUtil.xor(rpad, Oi, n/8);
         this.cipher.sct(Ai, mBlock); 
-        
+
         // corresponde a um passo da somatória da linha 7
-        this.A = ByteUtil.xor(this.A, Ai, n);
+        this.A = ByteUtil.xor(this.A, Ai, n/8);
         this.mLength += aLength;
+
+        System.out.println("R xor A=");
+        ByteUtil.print3xn(ByteUtil.xor(this.R, this.A, 12), 12);
     }
     
     @Override
@@ -93,30 +101,44 @@ public class Marvin implements MAC {
         // A = Somatória(Ai), i = 0, 1, ..., t
         // aqui na verdade só fazemos o passo de fazer o xor com A0 (i=0)
         int n = this.cipher.blockBits();
-        tag = ByteUtil.xor(this.A, A0, n); // MAC tag buffer
+        tag = ByteUtil.xor(this.A, A0, n/8); // MAC tag buffer
         
+        System.out.println("Acc=");
+        ByteUtil.print3xn(tag, 12);
+
         // T <- Ek(A)[tau]
-        byte[] cBlock = null;
+        byte[] cBlock = new byte[n/8];
         this.cipher.encrypt(tag, cBlock);
-        byte[] T = new byte[tagBits];
-        for (int k=0; k<tagBits; k++)
+        byte[] T = new byte[tagBits/8];
+        for (int k=0; k<tagBits/8; k++)
             T[k] = cBlock[k];
         return T;
     }
     
     private byte[] calculateA0(int tagBits) {
 
-        BigInteger um = BigInteger.valueOf(1);
-        
         // linha 6 do Algoritmo 1
         int n = this.cipher.blockBits();
-        BigInteger bin = BigInteger.valueOf(n - tagBits);
-        bin = bin.shiftLeft(1).add(um); // bin(n-tau)||1
-        byte[] rpad = ByteUtil.rpad(bin.toByteArray(), n); // rpad(bin(n-tau)||1)
+
+        byte[] bin0 = BigInteger.valueOf(n - tagBits).toByteArray();
+        byte[] bin = new byte[bin0.length+1];
+        for (int i=0; i<bin0.length; i++)
+            bin[i] = bin[0];
+        bin[bin0.length] = 1; // bin(n-tau)||1
+        byte[] rpad = ByteUtil.rpad(bin, n); // rpad(bin(n-tau)||1)
         byte[] m = BigInteger.valueOf(8*this.mLength).toByteArray();
         byte[] lpad = ByteUtil.lpad(m, n); // lpad(bin(|M|))
-        byte[] pad = ByteUtil.xor(rpad, lpad, n);
-        return ByteUtil.xor(this.R, pad, n);
+
+        System.out.println("");
+        System.out.println("Calculando A0...");
+        System.out.println("mLength= " + this.mLength);
+        System.out.println("lpad " + lpad.length);
+        ByteUtil.print3xn(lpad, 12);
+        System.out.println("rpad " + rpad.length);
+        ByteUtil.print3xn(rpad, 12);
+        
+        byte[] pad = ByteUtil.xor(rpad, lpad, n/8);
+        return ByteUtil.xor(this.R, pad, n/8);
     }
 
 
