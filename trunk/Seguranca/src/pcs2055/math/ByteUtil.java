@@ -210,4 +210,16 @@ public class ByteUtil {
         
         return r;
     }
+    
+    public static byte convertIntToHexa(int i){
+
+    	byte[] table = {0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7,
+    			0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF};
+    	
+    	int uh = i/16;
+    	int ul = i%16;
+    	return (byte)((byte)((table[uh]<<4)&0xF0)|table[ul]);
+    	
+    }
+
 }

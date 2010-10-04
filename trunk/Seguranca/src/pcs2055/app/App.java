@@ -1,13 +1,19 @@
 package pcs2055.app;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Arrays;
 
 import pcs2055.curupira.Curupira;
@@ -243,6 +249,9 @@ public class App {
 						cData[j] = cBlock[j-tmp.length];
 				}
 				
+				fileName = "cypher.txt";
+				writeByteFile(fileName, cData);
+				
 				// inicio da autenticacao
 				System.out.println("Inicio da autenticacao.");
 				
@@ -262,7 +271,7 @@ public class App {
 		
 		while (admissivel == 0) {
 			
-			System.out.print("Digite o nome do arquivo cifrado (com IV E MAC) para" +
+			System.out.print("Digite o nome do arquivo cifrado (com IV E MAC) para " +
 					"ser validado e decifrado: ");
 			try {fileName = inFromUser.readLine(); 
 			} catch(Exception e){}
@@ -293,6 +302,10 @@ public class App {
 						mData[j] = mBlock[j-tmp.length];
 				}
 				
+				fileName = "plein.txt";
+				writeByteFile(fileName, mData);
+				
+				
 				admissivel = 1;
 			} else { // se conseguiu ler o arquivo
 				System.out.println("Nao foi possivel abrir o arquivo : '" + fileName + "'");
@@ -310,7 +323,7 @@ public class App {
 		
 		while (admissivel == 0) {
 			
-			System.out.print("Digite o nome do arquivo para ser cifrado e" +
+			System.out.print("Digite o nome do arquivo para ser cifrado e " +
 					"autenticado: ");
 			try {fileName = inFromUser.readLine(); 
 			} catch(Exception e){}
@@ -338,6 +351,9 @@ public class App {
 						cData[j] = cBlock[j-tmp.length];
 				}
 				
+				fileName = "cypher.txt";
+				writeByteFile(fileName, cData);
+				
 				// inicio da autenticacao
 				System.out.println("Inicio da autenticacao.");
 				
@@ -352,7 +368,7 @@ public class App {
 		admissivel = 0;
 		while (admissivel == 0) {
 			
-			System.out.print("Digite o nome do arquivo associado de dados para ser" +
+			System.out.print("Digite o nome do arquivo associado de dados para ser " +
 					"autenticado: ");
 			try {fileName = inFromUser.readLine(); 
 			} catch(Exception e){}
@@ -381,7 +397,7 @@ public class App {
 		
 		while (admissivel == 0) {
 			
-			System.out.print("Digite o nome do arquivo cifrado (com IV E MAC) para" +
+			System.out.print("Digite o nome do arquivo cifrado (com IV E MAC) para " +
 					"ser validado e decifrado: ");
 			try {fileName = inFromUser.readLine(); 
 			} catch(Exception e){}
@@ -412,6 +428,11 @@ public class App {
 					for (; j < tmp.length + mBlock.length; j++)
 						mData[j] = mBlock[j-tmp.length];
 				}
+				
+				fileName = "plein.txt";
+				writeByteFile(fileName, mData);
+				
+				admissivel = 1;
 			} else {
 				System.out.println("Nao foi possivel abrir o arquivo : '" + fileName + "'");
 			}
@@ -421,7 +442,7 @@ public class App {
 		while (admissivel == 0) {
 			
 			System.out.print("Digite o nome do arquivo associado de dados para ser" +
-					"autenticado: ");
+					" autenticado: ");
 			try {fileName = inFromUser.readLine(); 
 			} catch(Exception e){}
 			
@@ -431,6 +452,7 @@ public class App {
 				// inicio da autenticacao (arquivo associado)
 				System.out.println("Inicio da autenticacao (arquivo associado).");
 				
+				admissivel = 1;
 			} else {
 				System.out.println("Nao foi possivel abrir o arquivo : '" + fileName + "'");
 			}
@@ -461,31 +483,44 @@ public class App {
 	}
 	
 	public static byte[] readByteFile(String fileName) {
+
+		byte[] tmp = new byte[0];
+		byte[] dataIn = new byte[0];
 		
 		try {
 			File file = new File(fileName);
-			BufferedReader br = new BufferedReader(new FileReader(file));
-			String line = br.readLine();
-			String data = new String("");
-			while (line != null) {
-				data = data.concat(line);
-				line = br.readLine();
+			InputStream in = new FileInputStream(file);
+			in = new BufferedInputStream(in);
+			
+			int byteIn = in.read();
+			while (byteIn != -1) {
+				tmp = Arrays.copyOf(dataIn, dataIn.length);
+				dataIn = new byte[tmp.length + 1];
+				int j;
+				for (j = 0; j < tmp.length; j++)
+					dataIn[j] = tmp[j];
+				dataIn[j] = ByteUtil.convertIntToHexa(byteIn);
+				byteIn = in.read();
 			}
-			br.close();
-			return data.getBytes();
-						
+			
+			in.close();
+			return dataIn;
+			
 		} catch (Exception e) {
 			return null;
 		}
 	}
 	
 	public static int writeByteFile (String fileName, byte[] data){
+		
 		try {
 			File file = new File(fileName);
-			BufferedWriter bw = new BufferedWriter(new FileWriter(file));
-			bw.write(data.toString()); // arrumar pra copiar bytes
-			bw.close();
-			
+			OutputStream out = new FileOutputStream(file);
+			out = new BufferedOutputStream(out);
+		
+			out.write(data);
+			out.close();
+		
 			return 0;
 		} catch (Exception e) {
 			return 1;
