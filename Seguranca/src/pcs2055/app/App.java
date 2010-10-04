@@ -1,7 +1,13 @@
 package pcs2055.app;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Arrays;
 
 import pcs2055.curupira.Curupira;
 import pcs2055.math.ByteUtil;
@@ -35,7 +41,7 @@ public class App {
 			
 			if(command.length() > 0) {
 				
-				if (command.equals("1")) {
+				if (command.equals(Integer.toString(1))) {
 					sizeKey = opcao1();
 				} else if (command.equals(Integer.toString(2))) {
 					sizeMac = opcao2();
@@ -56,8 +62,6 @@ public class App {
 					opcao9();
 				} else if (command.equals("H") || command.equals("h")) {
 					opcaoHelp();
-				} else { // comando é mensagem
-				//	sendMessage(command);
 				}
 			} else {
 				
@@ -153,40 +157,67 @@ public class App {
 	private static void opcao4() {
 		
 		int admissivel = 0;
-		String command = new String();
+		String filename = new String();
 		
 		while (admissivel == 0) {
 			
 			System.out.print("Digite o nome do arquivo para ser autenticado: ");
-			try {command = inFromUser.readLine(); 
+			try {filename = inFromUser.readLine(); 
 			} catch(Exception e){}
 			
-			if ( true ) { // se conseguiu ler o arquivo
-				System.out.print("Nao foi possivel abrir o arquivo. " + command);
-			} else {
+			try {
+
+				File file = new File(filename);
+				BufferedReader br = new BufferedReader(new FileReader(file));
+				String line = br.readLine();
+				String data = new String("");
+				while (line != null) {
+					data = data.concat(line);
+					line = br.readLine();
+				}
+				br.close();
+				byte[] filedata = data.getBytes();
+				
 				admissivel = 1;
-			}
-		
+			} catch (Exception e) {}
+			
+			if ( admissivel == 0 ) { // se conseguiu ler o arquivo
+				System.out.println("Nao foi possivel abrir o arquivo : '" + filename + "'");
+			}		
 		}
 	}
 	
 	private static void opcao5() {
 
 		int admissivel = 0;
-		String command = new String();
+		String filename = new String();
 		
 		while (admissivel == 0) {
 			
 			System.out.print("Digite o nome do arquivo com seu MAC para ser" +
 					"validado: ");
-			try {command = inFromUser.readLine(); 
+			try {filename = inFromUser.readLine(); 
 			} catch(Exception e){}
 			
-			if ( true ) { // se conseguiu ler o arquivo
-				System.out.print("Nao foi possivel abrir o arquivo. " + command);
-			} else {
+			try {
+
+				File file = new File(filename);
+				BufferedReader br = new BufferedReader(new FileReader(file));
+				String line = br.readLine();
+				String data = new String("");
+				while (line != null) {
+					data = data.concat(line);
+					line = br.readLine();
+				}
+				br.close();
+				byte[] filedata = data.getBytes();
+				
 				admissivel = 1;
-			}
+			} catch (Exception e) {}
+			
+			if ( admissivel == 0 ) { // se conseguiu ler o arquivo
+				System.out.println("Nao foi possivel abrir o arquivo : '" + filename + "'");
+			}	
 		
 		}
 		
@@ -197,49 +228,105 @@ public class App {
 		int admissivel = 0;
 		byte[] mBlock = new byte[12];
 		byte[] cBlock = new byte[12];
-		String command = new String();
+		String filename = new String();
 		
 		while (admissivel == 0) {
 			
 			System.out.print("Digite o nome do arquivo para ser cifrado e " +
 					"autenticado: ");
-			try {command = inFromUser.readLine(); 
+			try {filename = inFromUser.readLine(); 
 			} catch(Exception e){}
 			
-			if ( true ) { // se conseguiu ler o arquivo
-				System.out.print("Nao foi possivel abrir o arquivo. " + command);
-			} else {
+			try {
+
+				File file = new File(filename);
+				BufferedReader br = new BufferedReader(new FileReader(file));
+				String line = br.readLine();
+				String data = new String("");
+				while (line != null) {
+					data = data.concat(line);
+					line = br.readLine();
+				}
+				br.close();
+				byte[] filedata = data.getBytes();
+				
+				admissivel = 1;
 				
 				Curupira cur = new Curupira();
 				cur.makeKey(key, sizeKey);
 				
-				//for () {
-				//	mBlock = ;
-				//	cur.encrypt(mBlock, cBlock);
-				//}
+				System.out.println(filedata.length);
 				
-				admissivel = 1;
-			}
-		
+				String cdata = new String("");
+				
+				for (int i = 0; i < filedata.length/12; i++) {
+					mBlock = Arrays.copyOfRange(filedata, 12*i, 12*i+11);
+					ByteUtil.printArray(mBlock);
+					cur.encrypt(mBlock, cBlock);
+					cdata = cdata.concat(mBlock.toString());
+					System.out.println("->>> " + cdata);
+				}
+				
+			} catch (Exception e) {}
+			
+			if ( admissivel == 0 ) { // se conseguiu ler o arquivo
+				System.out.println("Nao foi possivel abrir o arquivo : '" + filename + "'");
+			}	
+			
+	
 		}
 	}
 	
-	private static void opcao7() {
+	private static void opcao7(byte[] key, int sizeKey) {
+		
 		int admissivel = 0;
-		String command = new String();
+		String filename = new String();
+		byte[] cBlock = new byte[12];
+		byte[] mBlock = new byte[12];
 		
 		while (admissivel == 0) {
 			
 			System.out.print("Digite o nome do arquivo cifrado (com IV E MAC) para" +
 					"ser validado e decifrado: ");
-			try {command = inFromUser.readLine(); 
+			try {filename = inFromUser.readLine(); 
 			} catch(Exception e){}
 			
-			if ( true ) { // se conseguiu ler o arquivo
-				System.out.print("Nao foi possivel abrir o arquivo. " + command);
-			} else {
+			try {
+
+				File file = new File(filename);
+				BufferedReader br = new BufferedReader(new FileReader(file));
+				String line = br.readLine();
+				String data = new String("");
+				while (line != null) {
+					data = data.concat(line);
+					line = br.readLine();
+				}
+				br.close();
+				byte[] filedata = data.getBytes();
+				
+				Curupira cur = new Curupira();
+				cur.makeKey(key, sizeKey);
+				
+				System.out.println(filedata.length);
+				
+				String mData = new String("");
+				
+				for (int i = 0; i < filedata.length/12; i++) {
+					cBlock = Arrays.copyOfRange(filedata, 12*i, 12*i+11);
+					ByteUtil.printArray(cBlock);
+					cur.decrypt(cBlock, mBlock);
+					mData = mData.concat(mBlock.toString());
+					System.out.println("->>> " + mData);
+				}
+				
+				
 				admissivel = 1;
-			}
+							
+			} catch (Exception e) {}
+			
+			if ( admissivel == 0 ) { // se conseguiu ler o arquivo
+				System.out.println("Nao foi possivel abrir o arquivo : '" + filename + "'");
+			}	
 		
 		}
 	}
@@ -249,29 +336,50 @@ public class App {
 		int admissivel = 0;
 		byte[] mBlock = new byte[12];
 		byte[] cBlock = new byte[12];
-		String command = new String();
+		String filename = new String();
 		
 		while (admissivel == 0) {
 			
 			System.out.print("Digite o nome do arquivo para ser cifrado e" +
 					"autenticado: ");
-			try {command = inFromUser.readLine(); 
+			try {filename = inFromUser.readLine(); 
 			} catch(Exception e){}
 			
-			if ( true ) { // se conseguiu ler o arquivo
-				System.out.print("Nao foi possivel abrir o arquivo. " + command);
-			} else {
+			try {
 				
+				File file = new File(filename);
+				BufferedReader br = new BufferedReader(new FileReader(file));
+				String line = br.readLine();
+				String data = new String("");
+				while (line != null) {
+					data = data.concat(line);
+					line = br.readLine();
+				}
+				br.close();
+				byte[] filedata = data.getBytes();
+
 				Curupira cur = new Curupira();
 				cur.makeKey(key, sizeKey);
 				
-				//for () {
-				//	mBlock = ;
-				//	cur.encrypt(mBlock, cBlock);
-				//}
+				System.out.println(filedata.length);
+				
+				String cData = new String("");
+				
+				for (int i = 0; i < filedata.length/12; i++) {
+					mBlock = Arrays.copyOfRange(filedata, 12*i, 12*i+11);
+					ByteUtil.printArray(mBlock);
+					cur.encrypt(mBlock, cBlock);
+					cData = cData.concat(cBlock.toString());
+					System.out.println("->>> " + cData);
+				}
 				
 				admissivel = 1;
-			}
+							
+			} catch (Exception e) {}
+			
+			if ( admissivel == 0 ) { // se conseguiu ler o arquivo
+				System.out.println("Nao foi possivel abrir o arquivo : '" + filename + "'");
+			}	
 		
 		}
 		
@@ -280,14 +388,25 @@ public class App {
 			
 			System.out.print("Digite o nome do arquivo associado de dados para ser" +
 					"autenticado: ");
-			try {command = inFromUser.readLine(); 
+			try {filename = inFromUser.readLine(); 
 			} catch(Exception e){}
 			
-			if ( true ) { // se conseguiu ler o arquivo
-				System.out.print("Nao foi possivel abrir o arquivo. " + command);
-			} else {
+			try {
+
+				File file = new File(filename);
+				BufferedReader br = new BufferedReader(new FileReader(file));
+				String line = br.readLine();
+				String data = new String("");
+				while (line != null) {
+					data = data.concat(line);
+					line = br.readLine();
+				}
+				br.close();
+				byte[] filedata = data.getBytes();
+				
 				admissivel = 1;
-			}
+							
+			} catch (Exception e) {}
 		
 		}
 	}
@@ -295,20 +414,32 @@ public class App {
 	private static void opcao9() {
 		
 		int admissivel = 0;
-		String command = new String();
+		String filename = new String();
 		
 		while (admissivel == 0) {
 			
 			System.out.print("Digite o nome do arquivo cifrado (com IV E MAC) para" +
 					"ser validado e decifrado: ");
-			try {command = inFromUser.readLine(); 
+			try {filename = inFromUser.readLine(); 
 			} catch(Exception e){}
 			
-			if ( true ) { // se conseguiu ler o arquivo
-				System.out.print("Nao foi possivel abrir o arquivo. " + command);
-			} else {
+			try {
+				File file = new File(filename);
+				BufferedReader br = new BufferedReader(new FileReader(file));
+				StringBuilder sb = new StringBuilder();
+				String line = br.readLine();
+				while (line != null) {
+					sb.append(line);
+					line = br.readLine();
+				}
+				br.close();
+				byte[] filedata = sb.toString().getBytes();
+				
+				System.out.println(filedata.length/12);
+				ByteUtil.printArray(filedata);
 				admissivel = 1;
-			}
+							
+			} catch (Exception e) {}
 		
 		}
 		
@@ -317,14 +448,26 @@ public class App {
 			
 			System.out.print("Digite o nome do arquivo associado de dados para ser" +
 					"autenticado: ");
-			try {command = inFromUser.readLine(); 
+			try {filename = inFromUser.readLine(); 
 			} catch(Exception e){}
 			
-			if ( true ) { // se conseguiu ler o arquivo
-				System.out.print("Nao foi possivel abrir o arquivo. " + command);
-			} else {
+			try {
+				File file = new File(filename);
+				BufferedReader br = new BufferedReader(new FileReader(file));
+				StringBuilder sb = new StringBuilder();
+				String line = br.readLine();
+				while (line != null) {
+					sb.append(line);
+					line = br.readLine();
+				}
+				br.close();
+				byte[] filedata = sb.toString().getBytes();
+				
+				System.out.println(filedata.length/12);
+				ByteUtil.printArray(filedata);
 				admissivel = 1;
-			}
+							
+			} catch (Exception e) {}
 		
 		}
 		
@@ -350,4 +493,25 @@ public class App {
 				"dados associados para ser autenticado");
 		System.out.println("0. Sair");
 	}
+	
+	public static String readTextFile(File filename) {
+		
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(filename));
+			StringBuilder sb = new StringBuilder();
+			String line = br.readLine();
+			while (line != null) {
+				sb.append(line + "\n");
+				line = br.readLine();
+			}
+			br.close();
+			return sb.toString();
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.err.println(filename);
+			System.err.println(e);
+			return "";
+		}
+	}
+	
 }
