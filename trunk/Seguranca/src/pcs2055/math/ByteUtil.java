@@ -100,38 +100,6 @@ public class ByteUtil {
     			result[i + 3*j] = mc[i][j].byteValue();  
     	
         return result;
-    	
-    	
-    	
-    	/*
-        // cria matrizes
-        byte[][] ma = new byte[3][3];
-        byte[][] mb = new byte[3][n];
-        for (int i=0; i<3; i++) {
-            for (int j=0; j<3; j++)
-                ma[i][j] = (byte) a[i + 3*j];
-        }
-        for (int i=0; i<3; i++) {
-            for (int j=0; j<n; j++)
-                mb[i][j] = (byte) b[i + 3*j];
-        }
-
-        // multiplica
-        byte[][] mc = new byte[3][n];
-        for (int i=0; i<3; i++) {
-            for (int j=0; j<n; j++) {
-                for (int k=0; k<3; k++)
-                    mc[i][j] += (byte) (ma[i][k] * mb[k][j]);
-            }
-        }
-
-        // volta pra forma de vetor
-        byte[] c = new byte[3*n];
-        for (int i = 0; i < 3; i++)
-        	for (int j = 0; j < n; j++)
-        		c[i + 3*j] = mc[i][j];
-
-        return c;*/
     }
 
     public static void printArray(byte[] v) {

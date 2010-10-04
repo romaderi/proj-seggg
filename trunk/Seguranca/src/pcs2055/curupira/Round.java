@@ -7,54 +7,27 @@ public class Round {
         
     public static byte[] initialKeyAddition(byte[] block, byte[] subkey) {
     	
-    	System.out.print("** INITIAL BLOCK -> ");
-    	ByteUtil.printArray(block);
-    	System.out.print("** INITIAL KEY -> ");
-    	ByteUtil.printArray(subkey);
-    	
-    	byte[] result = sigma(block, subkey);
+    	//byte[] result = sigma(block, subkey);
 
-    	System.out.print("INITIAL KEY ADDITION -> ");
-    	ByteUtil.printArray(result);
-    	
-        return result;
+        return sigma(block, subkey);
     }
     
     
     public static byte[] roundFunction(byte[] block, byte[] subkey) {
-    	
-    	System.out.print(" RoundFunction -> ");
-    	ByteUtil.printArray(block);
-    	ByteUtil.printArray(subkey);
-    	
         
         block = gama(block);
-    	//System.out.print(" GAMA -> ");
-    	//ByteUtil.printArray(block);
         block = pi(block);
-    	//System.out.print(" PI -> ");
-    	//ByteUtil.printArray(block);
         block = teta(block);
-    	//System.out.print(" TETA -> ");
-    	//ByteUtil.printArray(block);
-        block = sigma(block, subkey);
-    	System.out.print(" TEXT -> ");
-    	ByteUtil.printArray(block);
-        return block;
+        //block = sigma(block, subkey);
+        return sigma(block, subkey);
     }
     
     public static byte[] lastRoundFunction(byte[] block, byte[] subkey) {
     	
         block = gama(block);
-    	//System.out.print(" GAMA -> ");
-    	//ByteUtil.printArray(block);
         block = pi(block);
-    	//System.out.print(" PI -> ");
-    	//ByteUtil.printArray(block);
-        block = sigma(block, subkey);
-    	System.out.print(" TEXT -> ");
-    	ByteUtil.printArray(block);
-        return block;
+        //block = sigma(block, subkey);
+        return sigma(block, subkey);
     }
     
     public static byte[] sct(byte[] b) {
@@ -119,10 +92,6 @@ public class Round {
     	}
     	
     	return b;
-    	/*
-    	int n = 4;
-    	byte[] MDS = {3, 4, 6, 2, 5, 6, 2, 4, 7};
-        return ByteUtil.mult3xn(MDS, a, n);*/
     }
     
     public static byte[] sigma(byte[] a, byte[] subkey) {
