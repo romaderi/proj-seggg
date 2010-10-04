@@ -55,7 +55,7 @@ public class App {
 				} else if (command.equals(Integer.toString(6))) {
 					opcao6(key, sizeKey);
 				} else if (command.equals(Integer.toString(7))) {
-					opcao7();
+					opcao7(key, sizeKey);
 				} else if (command.equals(Integer.toString(8))) {
 					opcao8(key, sizeKey);
 				} else if (command.equals(Integer.toString(9))) {
