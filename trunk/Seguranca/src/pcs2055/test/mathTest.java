@@ -24,8 +24,14 @@ public class mathTest {
         //byte c = MathUtil.T0((byte)0xAA);
         //System.out.printf("%x", c);
         
-        byte[] b = {10, 11, 0xC, 0xD, 0xE, 0xF, 0x10, 0x11, 0x12};
-        ByteUtil.print3xn(b, 9);
+//        byte[] b = {10, 11, 0xC, 0xD, 0xE, 0xF, 0x10, 0x11, 0x12};
+//        ByteUtil.print3xn(b, 9);
+        
+        int n = 0x0;
+        String s = ByteUtil.bin(n);
+        System.out.println(s);
+        byte[] b = ByteUtil.binConcat1(n);
+        ByteUtil.printArray(b);
     }
 
 }

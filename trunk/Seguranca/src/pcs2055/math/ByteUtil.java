@@ -1,6 +1,7 @@
 package pcs2055.math;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 
 public class ByteUtil {
 
@@ -36,9 +37,22 @@ public class ByteUtil {
         return pad;
     }
 
-    public static byte[] bin(byte[] b, int n) {
+    public static String bin(int n) {
         
-        return null;
+        // converte decimal pra binário
+        StringBuilder s = new StringBuilder();
+        while(n/2 > 0) {
+            s.append(n%2);
+            n = (int) n/2;
+        }
+        s.append(n%2);
+
+        //inverte a ordem
+        StringBuilder r = new StringBuilder();
+        for (int i=s.length()-1; i>=0; i--)
+            r.append(s.charAt(i));
+        
+        return r.toString();
     }
 
     public static byte[] add(byte[] a, byte[] b, int length) {
@@ -161,4 +175,39 @@ public class ByteUtil {
             
     }
     
+    /**
+     * faz bin(n)||1
+     * @param n
+     * @return
+     */
+    public static byte[] binConcat1(int n) {
+
+        StringBuilder s = new StringBuilder(bin(n));
+        if (s.toString().equals("0")) // if descoberto pragmaticamente por eng. reversa õÓ
+            s = new StringBuilder("");
+        s.append("1");
+        // completa com zeros
+        int m = 8-s.length()%8;
+        for (int i=0; i<m; i++)
+            s.append("0");
+        
+        // reconverte para inteiro
+        BigInteger dois = BigInteger.valueOf(2);
+        BigInteger bi = BigInteger.valueOf(0);
+        int exp = 0;
+        for (int i=s.length()-1; i>=0; i--){
+            int x = Integer.parseInt(s.substring(i, i+1));
+            BigInteger f = dois.pow(exp);
+            BigInteger p = BigInteger.valueOf(x).multiply(f);
+            bi = bi.add(p);
+            exp++;
+        }
+        
+        // gambiarra pra jogar fora zero a esquerda
+        byte[] r = bi.toByteArray();
+        if (r[0] == 0)
+            r = Arrays.copyOfRange(r, 1, r.length);
+        
+        return r;
+    }
 }

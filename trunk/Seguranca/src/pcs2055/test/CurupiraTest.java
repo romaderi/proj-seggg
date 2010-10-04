@@ -22,6 +22,13 @@ public class CurupiraTest {
 		Curupira cur = new Curupira();
 		cur.makeKey(cypherKey, 96);
 	
+		
+		mBlock = new byte[] { (byte) 0xc8, 0x14, (byte) 0xef, 
+		        0x73, 0x05, 0x26, 
+		        (byte) 0xd3, (byte) 0xa9, (byte) 0xf9,
+		        (byte) 0xbc,  0x44   , (byte) 0xce
+		};
+		                  
 		cur.encrypt(mBlock, cBlock);
 			
 		System.out.print("PLEIN TEXT : ");
