@@ -37,6 +37,7 @@ public class Marvin implements MAC {
     @Override
     public void init() {
 
+        this.mLength = 0;
         this.cipher.makeKey(this.key, this.keyBits);
         int n = this.cipher.blockBits();
         
@@ -55,6 +56,7 @@ public class Marvin implements MAC {
     @Override
     public void init(byte[] R) {
         
+        this.mLength = 0;
         this.cipher.makeKey(this.key, this.keyBits);
 
         this.R = R;
@@ -95,7 +97,7 @@ public class Marvin implements MAC {
         // aqui na verdade só fazemos o passo de fazer o xor com A0 (i=0)
         int n = this.cipher.blockBits();
         byte[] pretag = ByteUtil.xor(this.A, A0, n/8); // MAC tag buffer
-        
+
         // "retorna" tag
         for (int i=0; i<tagBits/8; i++) {
             tag[i] = pretag[i];
@@ -117,9 +119,9 @@ public class Marvin implements MAC {
 
         byte[] bin = ByteUtil.binConcat1(n - tagBits);
         byte[] rpad = ByteUtil.rpad(bin, n); // rpad(bin(n-tau)||1)
+
         byte[] m = BigInteger.valueOf(8*this.mLength).toByteArray();
         byte[] lpad = ByteUtil.lpad(m, n); // lpad(bin(|M|))
-
         byte[] pad = ByteUtil.xor(rpad, lpad, n/8);
         return ByteUtil.xor(this.R, pad, n/8);
     }

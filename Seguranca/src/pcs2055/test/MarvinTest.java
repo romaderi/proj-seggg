@@ -28,8 +28,7 @@ public class MarvinTest {
                          0x14, 0x15, 0x16, 0x17};
 
     
-        BlockCipher curupira = new Curupira();
-        
+        BlockCipher curupira = new Curupira();        
         MAC marvin = new Marvin();
         marvin.setKey(key, Curupira.KEY_SIZE_96);
         marvin.setCipher(curupira);
@@ -41,14 +40,41 @@ public class MarvinTest {
         marvin.update(chunk4, 10);
         byte[] tagFake = new byte[12];
         byte[] tag = marvin.getTag(tagFake, 96);
-        
-        System.out.println("tag=");
-        ByteUtil.printArray(tag);
+        ByteUtil.printArray(tag, "tag= ");
+        System.out.println("");
         
 //        key = new byte[] {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c};
 //        byte[] chunk = new byte[] {};
         
+        byte[] M = new byte[]{0};
+        test(marvin, key, M);
 
+        M = new byte[]{0, 0};
+        test(marvin, key, M);
+
+        M = new byte[]{0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0};
+        test(marvin, key, M);
+    }
+    
+    public static void test(MAC marvin, byte[] key, byte[] M) {
+        
+        BlockCipher curupira = new Curupira();        
+        marvin.setKey(key, Curupira.KEY_SIZE_96);
+        marvin.setCipher(curupira);
+
+        ByteUtil.printArray(M, "Testando ");
+        System.out.println("");
+        marvin.init();
+        marvin.update(M, M.length);
+        byte[] tagFake = new byte[12];
+        byte[] tag = marvin.getTag(tagFake, 4*8);
+        ByteUtil.printArray(tag, "tag(04)= ");
+        tag = marvin.getTag(tagFake, 8*8);
+        ByteUtil.printArray(tag, "tag(08)= ");
+        tag = marvin.getTag(tagFake, 12*8);
+        ByteUtil.printArray(tag, "tag(12)= ");
+        System.out.println("");
     }
 
 }
