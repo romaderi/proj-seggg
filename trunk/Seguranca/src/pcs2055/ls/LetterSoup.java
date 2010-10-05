@@ -119,13 +119,14 @@ public class LetterSoup implements AED {
 
             // autentica dado associado
             byte[] D = associatedTag(tagBits);
+            ByteUtil.print3xn(D, 12, "D=");
         
             // calcula a resultante das autenticações
             
             // A <- (A xor sct(D))
             int n = this.cipher.blockBits()/8;
-            byte[] sctD = null;
-            this.cipher.sct(sctD, D); // confirmar posição dos parâmetros
+            byte[] sctD = new byte[n];
+            this.cipher.sct(sctD, D); 
             A = ByteUtil.xor(A, sctD, n); 
         }
 
@@ -150,14 +151,8 @@ public class LetterSoup implements AED {
             byte[] aData = Arrays.copyOfRange(this.cData, i, b);
             this.mac.update(aData, b-i);
             this.mac.getTag(A, tagBits); // MAC Tag Buffer (parece lanche do McDonnads!)
-
-            System.out.println("update A with");
-            ByteUtil.printArray(aData);
-            ByteUtil.print3xn(A, 12);
         }
         
-        System.out.println("Afinal=");
-        ByteUtil.print3xn(A, 12);
         return A;
     }
 
@@ -165,20 +160,27 @@ public class LetterSoup implements AED {
     private byte[] associatedTag(int tagBits) {
         
         // L <- Ek(bin(0^n)) 
-        int n = this.cipher.blockBits();
-        byte[] L = null;
-        this.cipher.encrypt(ByteUtil.lpad(new byte[] {0}, n), L); // TODO: n???
+        int n = this.cipher.blockBits()/8;
+        byte[] L = new byte[n];
+        this.cipher.encrypt(ByteUtil.lpad(new byte[] {0}, 8*n), L); 
         
         // D <- ∗ (L, H, tau)  
-        byte[] D = null;
+        byte[] D = new byte[tagBits/8];
         this.mac.init(L);
         for (int i=0; i < this.H.length; i+=n) {
             
-            byte[] aData = Arrays.copyOfRange(this.H, i, i+n);
-            this.mac.update(aData, n);
+            int b = i + n;
+            if (i+n > this.H.length)
+                b = this.H.length;
+            
+            byte[] aData = Arrays.copyOfRange(this.H, i, b);
+            this.mac.update(aData, b-i);
             this.mac.getTag(D, tagBits); 
+            
+            ByteUtil.print3xn(D, 12, "Di");
         }
 
+        // errado nos dois último bytes
         return D;
     }
 
