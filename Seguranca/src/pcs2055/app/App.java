@@ -17,8 +17,10 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 import pcs2055.curupira.Curupira;
+import pcs2055.interfaces.AED;
 import pcs2055.interfaces.BlockCipher;
 import pcs2055.interfaces.MAC;
+import pcs2055.ls.LetterSoup;
 import pcs2055.marvin.Marvin;
 import pcs2055.math.ByteUtil;
 
@@ -53,11 +55,11 @@ public class App {
 				
 				if (command.equals(Integer.toString(1))) {
 					sizeKey = opcao1();
-					key = new byte[sizeKey];
+					key = new byte[sizeKey/8];
 				} else if (command.equals(Integer.toString(2))) {
 					sizeMac = opcao2();
 				} else if (command.equals(Integer.toString(3))) {
-					key = new byte[sizeKey];
+					key = new byte[sizeKey/8];
 					key = opcao3(sizeKey);
 				} else if (command.equals(Integer.toString(4))) {
 					opcao4(key, sizeKey, sizeMac);
@@ -204,8 +206,7 @@ public class App {
 		        byte[] tagFake = new byte[12];
 		        byte[] tag = marvin.getTag(tagFake, 96);
 		        
-		        fileName = fileName.concat(".mac");
-				writeByteFile(fileName, tag);
+				writeByteFile(fileName.concat(".mac"), tag);
 		        
 				admissivel = 1;
 			} else { // se conseguiu ler o arquivo
@@ -275,8 +276,6 @@ public class App {
 	private static void opcao6(byte[] key, int sizeKey, int sizeMac) {
 		
 		int admissivel = 0;
-		byte[] mBlock = new byte[12];
-		byte[] cBlock = new byte[12];
 		String fileName = new String();
 		
 		while (admissivel == 0) {
@@ -290,30 +289,24 @@ public class App {
 			
 			if ( fileData != null ) {
 				
-				// inicio da cifracao
-				System.out.println("Inicio da cifracao.");
+				byte[] nounce = new byte[12];
 				
-				Curupira cur = new Curupira();
-				cur.makeKey(key, sizeKey);
-				
-				byte[] cData = new byte[0], tmp = new byte[0];
-				for (int i = 0; i < fileData.length/12; i++) {
-					mBlock = Arrays.copyOfRange(fileData, 12*i, 12*i+12);
-					cur.encrypt(mBlock, cBlock);
-					tmp = Arrays.copyOf(cData, cData.length);
-					cData = new byte[tmp.length + cBlock.length];
-					int j;
-					for (j = 0; j < tmp.length; j++)
-						cData[j] = tmp[j];
-					for (; j < tmp.length + cBlock.length; j++)
-						cData[j] = cBlock[j-tmp.length];
-				}
-				
-				fileName = fileName.concat(".cypher");
-				writeByteFile(fileName, cData);
-				
-				// inicio da autenticacao
-				System.out.println("Inicio da autenticacao.");
+				BlockCipher curupira = new Curupira();
+		        MAC marvin = new Marvin();
+		        AED ls = new LetterSoup();
+		        
+		        ls.setKey(key, sizeKey);
+		        ls.setCipher(curupira);
+		        ls.setIV(nounce, sizeMac);
+		        ls.setMAC(marvin);
+		        
+		        byte[] tmp = new byte[12];
+		        byte[] cData = ls.encrypt(fileData, fileData.length, tmp);
+		        byte[] tag = ls.getTag(tmp, sizeMac);
+		        
+				writeByteFile(fileName.concat(".cypher"), cData);
+				writeByteFile(fileName.concat(".mac"), tag);
+				writeByteFile(fileName.concat(".iv"), nounce);
 				
 				admissivel = 1;
 			} else {
@@ -326,8 +319,6 @@ public class App {
 		
 		int admissivel = 0;
 		String fileName = new String();
-		byte[] cBlock = new byte[12];
-		byte[] mBlock = new byte[12];
 		
 		while (admissivel == 0) {
 			
@@ -340,32 +331,30 @@ public class App {
 			
 			if ( fileData != null ) {
 			
-				// inicio da validacao
-				System.out.println("Inicio da validacao.");
+				byte[] mac = readByteFile (fileName.concat(".mac"));
+				byte[] nounce = readByteFile (fileName.concat(".iv"));
+
+				BlockCipher curupira = new Curupira();
+				MAC marvin = new Marvin();
+				AED ls = new LetterSoup();
 				
-				// inicio da decifracao
-				System.out.println("Inicio da decifracao.");
+				ls.setKey(key, sizeKey);
+				ls.setCipher(curupira);
+				ls.setIV(nounce, nounce.length);
+				ls.setMAC(marvin);
 				
-				Curupira cur = new Curupira();
-				cur.makeKey(key, sizeKey);
+		        byte[] tmp = new byte[12];
+		        byte[] tag = ls.getTag(mac, sizeMac);
 				
-				byte[] mData = new byte[0], tmp = new byte[0];
-				for (int i = 0; i < fileData.length/12; i++) {
-					cBlock = Arrays.copyOfRange(fileData, 12*i, 12*i+12);
-					cur.decrypt(cBlock, mBlock);
-					tmp = Arrays.copyOf(mData, mData.length);
-					mData = new byte[tmp.length + mBlock.length];
-					int j;
-					for (j = 0; j < tmp.length; j++)
-						mData[j] = tmp[j];
-					for (; j < tmp.length + mBlock.length; j++)
-						mData[j] = mBlock[j-tmp.length];
-				}
-				
-				fileName = fileName.replace(".cypher", "");
-				writeByteFile(fileName, mData);
-				
-				
+		        if ( ByteUtil.compareArray(tag, mac) == 1) {
+		        	System.out.println("Arquivo '" + fileName + "' validado.");
+			        byte[] mData = ls.decrypt(fileData, fileData.length, tmp);
+			        writeByteFile(fileName, mData);
+		        } else {
+		        	System.out.println("ERRO : autenticacao do arquivo '" + fileName +
+		        			"' invalida.");
+		        }
+		        			
 				admissivel = 1;
 			} else { // se conseguiu ler o arquivo
 				System.out.println("Nao foi possivel abrir o arquivo : '" + fileName + "'");
@@ -377,8 +366,6 @@ public class App {
 	private static void opcao8(byte[] key, int sizeKey, int sizeMac) {
 		
 		int admissivel = 0;
-		byte[] mBlock = new byte[12];
-		byte[] cBlock = new byte[12];
 		String fileName = new String();
 		
 		while (admissivel == 0) {
@@ -392,30 +379,24 @@ public class App {
 
 			if ( fileData != null ) {
 				
-				// inicio da cifracao
-				System.out.println("Inicio da cifracao.");
+				byte[] nounce = new byte[12];
 				
-				Curupira cur = new Curupira();
-				cur.makeKey(key, sizeKey);
-				
-				byte[] cData = new byte[0], tmp = new byte[0];
-				for (int i = 0; i < fileData.length/12; i++) {
-					mBlock = Arrays.copyOfRange(fileData, 12*i, 12*i+12);
-					cur.encrypt(mBlock, cBlock);
-					tmp = Arrays.copyOf(cData, cData.length);
-					cData = new byte[tmp.length + cBlock.length];
-					int j;
-					for (j = 0; j < tmp.length; j++)
-						cData[j] = tmp[j];
-					for (; j < tmp.length + cBlock.length; j++)
-						cData[j] = cBlock[j-tmp.length];
-				}
-				
-				fileName = fileName.concat(".cypher");
-				writeByteFile(fileName, cData);
-				
-				// inicio da autenticacao
-				System.out.println("Inicio da autenticacao.");
+				BlockCipher curupira = new Curupira();
+		        MAC marvin = new Marvin();
+		        AED ls = new LetterSoup();
+		        
+		        ls.setKey(key, sizeKey);
+		        ls.setCipher(curupira);
+		        ls.setIV(nounce, sizeMac);
+		        ls.setMAC(marvin);
+		        
+		        byte[] tmp = new byte[12];
+		        byte[] cData = ls.encrypt(fileData, fileData.length, tmp);
+		        byte[] tag = ls.getTag(tmp, sizeMac);
+		        
+				writeByteFile(fileName.concat(".cypher"), cData);
+				writeByteFile(fileName.concat(".mac"), tag);
+				writeByteFile(fileName.concat(".iv"), nounce);
 				
 				
 				admissivel = 1;
@@ -466,31 +447,29 @@ public class App {
 			
 			if ( fileData != null ) {
 				
-				// inicio da validacao
-				System.out.println("Inicio da validacao.");
+				byte[] mac = readByteFile (fileName.concat(".mac"));
+				byte[] nounce = readByteFile (fileName.concat(".iv"));
+
+				BlockCipher curupira = new Curupira();
+				MAC marvin = new Marvin();
+				AED ls = new LetterSoup();
 				
+				ls.setKey(key, sizeKey);
+				ls.setCipher(curupira);
+				ls.setIV(nounce, nounce.length);
+				ls.setMAC(marvin);
 				
-				// inicio da decifracao
-				System.out.println("Inicio da decifracao.");
+		        byte[] tmp = new byte[12];
+		        byte[] tag = ls.getTag(mac, sizeMac);
 				
-				Curupira cur = new Curupira();
-				cur.makeKey(key, sizeKey);
-				
-				byte[] mData = new byte[0], tmp = new byte[0];
-				for (int i = 0; i < fileData.length/12; i++) {
-					cBlock = Arrays.copyOfRange(fileData, 12*i, 12*i+12);
-					cur.decrypt(cBlock, mBlock);
-					tmp = Arrays.copyOf(mData, mData.length);
-					mData = new byte[tmp.length + mBlock.length];
-					int j;
-					for (j = 0; j < tmp.length; j++)
-						mData[j] = tmp[j];
-					for (; j < tmp.length + mBlock.length; j++)
-						mData[j] = mBlock[j-tmp.length];
-				}
-				
-				fileName = fileName.replace(".cypher", "");
-				writeByteFile(fileName, mData);
+		        if ( ByteUtil.compareArray(tag, mac) == 1) {
+		        	System.out.println("Arquivo '" + fileName + "' validado.");
+			        byte[] mData = ls.decrypt(fileData, fileData.length, tmp);
+			        writeByteFile(fileName, mData);
+		        } else {
+		        	System.out.println("ERRO : autenticacao do arquivo '" + fileName +
+		        			"' invalida.");
+		        }
 				
 				admissivel = 1;
 			} else {
