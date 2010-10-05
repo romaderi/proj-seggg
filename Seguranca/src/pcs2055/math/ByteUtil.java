@@ -117,6 +117,11 @@ public class ByteUtil {
         return result;
     }
 
+    public static void printArray(byte[] v, String label) {
+        System.out.println(label);
+        printArray(v);
+    }
+    
     public static void printArray(byte[] v) {
         
         for (int i=0; i<v.length; i++)
@@ -155,6 +160,12 @@ public class ByteUtil {
     public static byte ctimes (byte b){
     	return xtimes(xtimes((byte)(xtimes((byte)((xtimes(b))^b))^b)));
     }
+    
+    public static void print3xn(byte[] b, int length, String label) {
+        
+        System.out.println(label);
+        print3xn(b, length);
+    }    
     
     /**
      * imprime vetor em forma de matriz 3xn, 

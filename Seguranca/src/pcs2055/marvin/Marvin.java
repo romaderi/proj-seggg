@@ -54,6 +54,8 @@ public class Marvin implements MAC {
     
     @Override
     public void init(byte[] R) {
+        
+        this.cipher.makeKey(this.key, this.keyBits);
 
         this.R = R;
         this.Oi = Arrays.copyOf(this.R, this.R.length);
