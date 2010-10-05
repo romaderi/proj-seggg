@@ -17,6 +17,9 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 import pcs2055.curupira.Curupira;
+import pcs2055.interfaces.BlockCipher;
+import pcs2055.interfaces.MAC;
+import pcs2055.marvin.Marvin;
 import pcs2055.math.ByteUtil;
 
 public class App {
@@ -30,7 +33,7 @@ public class App {
 		// TODO Auto-generated method stub
 		
 		int sizeKey = 96;
-		int sizeMac= 96;
+		int sizeMac = 96;
 		byte[] key = new byte[12]; 
 		
 		inFromUser = new BufferedReader(new InputStreamReader(System.in));
@@ -50,23 +53,24 @@ public class App {
 				
 				if (command.equals(Integer.toString(1))) {
 					sizeKey = opcao1();
+					key = new byte[sizeKey];
 				} else if (command.equals(Integer.toString(2))) {
 					sizeMac = opcao2();
 				} else if (command.equals(Integer.toString(3))) {
 					key = new byte[sizeKey];
 					key = opcao3(sizeKey);
 				} else if (command.equals(Integer.toString(4))) {
-					opcao4();
+					opcao4(key, sizeKey, sizeMac);
 				} else if (command.equals(Integer.toString(5))) {
-					opcao5();
+					opcao5(key, sizeKey, sizeMac);
 				} else if (command.equals(Integer.toString(6))) {
-					opcao6(key, sizeKey);
+					opcao6(key, sizeKey, sizeMac);
 				} else if (command.equals(Integer.toString(7))) {
-					opcao7(key, sizeKey);
+					opcao7(key, sizeKey, sizeMac);
 				} else if (command.equals(Integer.toString(8))) {
-					opcao8(key, sizeKey);
+					opcao8(key, sizeKey, sizeMac);
 				} else if (command.equals(Integer.toString(9))) {
-					opcao9(key, sizeKey);
+					opcao9(key, sizeKey, sizeMac);
 				} else if (command.equals("H") || command.equals("h")) {
 					opcaoHelp();
 				}
@@ -161,7 +165,7 @@ public class App {
 	}
 
 
-	private static void opcao4() {
+	private static void opcao4(byte[] key, int sizeKey, int sizeMac) {
 		
 		int admissivel = 0;
 		String fileName = new String();
@@ -178,6 +182,31 @@ public class App {
 				// inicio da autenticacao
 				System.out.println("Inicio da autenticacao.");
 				
+				BlockCipher curupira = new Curupira();
+		        
+		        MAC marvin = new Marvin();
+		        marvin.setKey(key, sizeKey);
+		        marvin.setCipher(curupira);
+				
+		        marvin.init();
+		        byte[] chunk;
+		        for (int i = 0; i < fileData.length; i = i + 12) {
+		        	if (i + 12 < fileData.length) {
+		        		chunk = new byte[12];
+		        		chunk = Arrays.copyOfRange(fileData, i, i+12);
+		        	} else {
+		        		chunk = new byte[fileData.length-i];
+		        		chunk = Arrays.copyOfRange(fileData, i, fileData.length-1);
+		        	}
+		        	marvin.update(chunk, chunk.length);
+		        }
+		        
+		        byte[] tagFake = new byte[12];
+		        byte[] tag = marvin.getTag(tagFake, 96);
+		        
+		        fileName = fileName.concat(".mac");
+				writeByteFile(fileName, tag);
+		        
 				admissivel = 1;
 			} else { // se conseguiu ler o arquivo
 				System.out.println("Nao foi possivel abrir o arquivo : '" + fileName + "'");
@@ -185,24 +214,55 @@ public class App {
 		}
 	}
 	
-	private static void opcao5() {
+	private static void opcao5(byte[] key, int sizeKey, int sizeMac) {
 
 		int admissivel = 0;
 		String fileName = new String();
 		
 		while (admissivel == 0) {
 			
-			System.out.print("Digite o nome do arquivo com seu MAC para ser" +
-					"validado: ");
+			System.out.print("Digite o nome do arquivo (MAC é obtido automaticament) " +
+					"para ser validado: ");
 			try {fileName = inFromUser.readLine(); 
 			} catch(Exception e){}
 			
 			byte[] fileData = readByteFile (fileName);
 			if ( fileData != null ) {
 				
+				byte[] mac = readByteFile (fileName.concat(".mac"));
+				
 				// inicio da validacao
 				System.out.println("Inicio da validacao.");
 				
+				BlockCipher curupira = new Curupira();
+		        
+		        MAC marvin = new Marvin();
+		        marvin.setKey(key, sizeKey);
+		        marvin.setCipher(curupira);
+				
+		        marvin.init();
+		        byte[] chunk;
+		        for (int i = 0; i < fileData.length; i = i + 12) {
+		        	if (i + 12 < fileData.length) {
+		        		chunk = new byte[12];
+		        		chunk = Arrays.copyOfRange(fileData, i, i+12);
+		        	} else {
+		        		chunk = new byte[fileData.length-i];
+		        		chunk = Arrays.copyOfRange(fileData, i, fileData.length-1);
+		        	}
+		        	marvin.update(chunk, chunk.length);
+		        }
+		        
+		        byte[] tagFake = new byte[12];
+		        byte[] tag = marvin.getTag(tagFake, 96);
+
+		        if ( ByteUtil.compareArray(tag, mac) == 1) {
+		        	System.out.println("Arquivo '" + fileName + "' validado.");
+		        } else {
+		        	System.out.println("ERRO : autenticacao do arquivo '" + fileName +
+		        			"' invalida.");
+		        }
+		        
 				admissivel = 1;
 			} else { // se conseguiu ler o arquivo
 				System.out.println("Nao foi possivel abrir o arquivo : '" + fileName + "'");
@@ -212,7 +272,7 @@ public class App {
 		
 	}
 	
-	private static void opcao6(byte[] key, int sizeKey) {
+	private static void opcao6(byte[] key, int sizeKey, int sizeMac) {
 		
 		int admissivel = 0;
 		byte[] mBlock = new byte[12];
@@ -229,7 +289,7 @@ public class App {
 			byte[] fileData = readByteFile (fileName);
 			
 			if ( fileData != null ) {
-
+				
 				// inicio da cifracao
 				System.out.println("Inicio da cifracao.");
 				
@@ -249,7 +309,7 @@ public class App {
 						cData[j] = cBlock[j-tmp.length];
 				}
 				
-				fileName = "cypher.txt";
+				fileName = fileName.concat(".cypher");
 				writeByteFile(fileName, cData);
 				
 				// inicio da autenticacao
@@ -262,7 +322,7 @@ public class App {
 		}
 	}
 	
-	private static void opcao7(byte[] key, int sizeKey) {
+	private static void opcao7(byte[] key, int sizeKey, int sizeMac) {
 		
 		int admissivel = 0;
 		String fileName = new String();
@@ -302,7 +362,7 @@ public class App {
 						mData[j] = mBlock[j-tmp.length];
 				}
 				
-				fileName = "plein.txt";
+				fileName = fileName.replace(".cypher", "");
 				writeByteFile(fileName, mData);
 				
 				
@@ -314,7 +374,7 @@ public class App {
 		}
 	}
 	
-	private static void opcao8(byte[] key, int sizeKey) {
+	private static void opcao8(byte[] key, int sizeKey, int sizeMac) {
 		
 		int admissivel = 0;
 		byte[] mBlock = new byte[12];
@@ -351,7 +411,7 @@ public class App {
 						cData[j] = cBlock[j-tmp.length];
 				}
 				
-				fileName = "cypher.txt";
+				fileName = fileName.concat(".cypher");
 				writeByteFile(fileName, cData);
 				
 				// inicio da autenticacao
@@ -388,7 +448,7 @@ public class App {
 		}
 	}
 	
-	private static void opcao9(byte[] key, int sizeKey) {
+	private static void opcao9(byte[] key, int sizeKey, int sizeMac) {
 		
 		int admissivel = 0;
 		String fileName = new String();
@@ -429,7 +489,7 @@ public class App {
 						mData[j] = mBlock[j-tmp.length];
 				}
 				
-				fileName = "plein.txt";
+				fileName = fileName.replace(".cypher", "");
 				writeByteFile(fileName, mData);
 				
 				admissivel = 1;
@@ -520,6 +580,8 @@ public class App {
 		
 			out.write(data);
 			out.close();
+			
+			System.out.println("Arquivo '" + fileName + "' criado.");
 		
 			return 0;
 		} catch (Exception e) {

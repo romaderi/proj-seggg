@@ -232,5 +232,14 @@ public class ByteUtil {
     	return (byte)((byte)((table[uh]<<4)&0xF0)|table[ul]);
     	
     }
+    
+    public static int compareArray(byte[] x, byte[] y) {
+    	if (x.length != y.length)
+    		return 0;
+    	for (int i = 0; i < x.length; i++)
+    		if ( x[i] != y[i])
+    			return 0;
+    	return 1;
+    }
 
 }
