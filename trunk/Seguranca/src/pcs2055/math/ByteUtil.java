@@ -118,7 +118,7 @@ public class ByteUtil {
     }
 
     public static void printArray(byte[] v, String label) {
-        System.out.println(label);
+        System.out.print("\n"+label);
         printArray(v);
     }
     
@@ -126,7 +126,6 @@ public class ByteUtil {
         
         for (int i=0; i<v.length; i++)
             System.out.print(Integer.toHexString((short)(0x000000FF & v[i])) + " ");
-        System.out.println("");
     }
 
     public static void printMatriz(byte[][] m) {
@@ -183,7 +182,7 @@ public class ByteUtil {
             }
             System.out.println("");
         }
-            
+        System.out.println("");
     }
     
     /**

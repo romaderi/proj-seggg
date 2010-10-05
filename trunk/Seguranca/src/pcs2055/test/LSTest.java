@@ -17,7 +17,7 @@ public class LSTest {
         byte[] nounce = new byte[12];
         nounce[11] = 0x2A;
         
-        //test(plainText, key, null, nounce, Curupira.KEY_SIZE_96);
+        test(plainText, key, null, nounce, Curupira.KEY_SIZE_96);
         
         ///////////////////////////
         
@@ -29,6 +29,16 @@ public class LSTest {
         nounce[11] = 0x2A;
         
         test(plainText, key, header, nounce, Curupira.KEY_SIZE_96);
+
+        ///////////////////////////
+        
+        header = new byte[] {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
+        plainText = new byte[1];
+        key = new byte[]{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c};
+        nounce = new byte[12];
+        nounce[11] = 0x2A;
+        
+        test2(plainText, key, header, nounce, Curupira.KEY_SIZE_96);
 
     }
     
@@ -59,4 +69,31 @@ public class LSTest {
         System.out.println("");
     }
 
+    private static void test2(byte[] plainText, byte[] key, byte[] header, byte[] nounce, int keybits) {
+        
+        BlockCipher curupira = new Curupira();
+        MAC marvin = new Marvin();
+        AED ls = new LetterSoup();
+        
+        ls.setKey(key, keybits);
+        ls.setCipher(curupira);
+        ls.setIV(nounce, 12);
+        ls.setMAC(marvin);
+
+        byte[] cData = new byte[12]; // inútil aqui
+        byte[] crypto = ls.encrypt(plainText, 23, cData);
+        
+        ByteUtil.printArray(crypto, "Ciphertext= ");
+        
+        byte[] tag = ls.getTag(cData, 12*8);
+        
+        if (header != null) {
+            ls.update(header, 23);
+            tag = ls.getTag(header, 12*8);
+        }
+
+        ByteUtil.printArray(tag, "Tag= ");
+        System.out.println("");
+    }
+    
 }

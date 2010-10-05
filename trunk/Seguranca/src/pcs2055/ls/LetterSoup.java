@@ -114,12 +114,11 @@ public class LetterSoup implements AED {
         
         // autentica texto cifrado
         byte[] A = cipherTag(tagBits);
-        
+
         if (this.H != null && this.H.length>0) {
 
             // autentica dado associado
             byte[] D = associatedTag(tagBits);
-            ByteUtil.print3xn(D, 12, "D=");
         
             // calcula a resultante das autenticações
             
@@ -127,7 +126,7 @@ public class LetterSoup implements AED {
             int n = this.cipher.blockBits()/8;
             byte[] sctD = new byte[n];
             this.cipher.sct(sctD, D); 
-            A = ByteUtil.xor(A, sctD, n); 
+            A = ByteUtil.xor(A, sctD, n);
         }
 
         // T <- Ek(A)[tau]
@@ -176,8 +175,6 @@ public class LetterSoup implements AED {
             byte[] aData = Arrays.copyOfRange(this.H, i, b);
             this.mac.update(aData, b-i);
             this.mac.getTag(D, tagBits); 
-            
-            ByteUtil.print3xn(D, 12, "Di");
         }
 
         // errado nos dois último bytes
