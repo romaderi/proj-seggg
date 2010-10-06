@@ -15,6 +15,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Random;
 
 import pcs2055.curupira.Curupira;
 import pcs2055.interfaces.AED;
@@ -181,16 +182,12 @@ public class App {
 			byte[] fileData = readByteFile (fileName);
 			if ( fileData != null ) {
 				
-				// inicio da autenticacao
-				System.out.println("Inicio da autenticacao.");
-				
 				BlockCipher curupira = new Curupira();
-		        
 		        MAC marvin = new Marvin();
 		        marvin.setKey(key, sizeKey);
 		        marvin.setCipher(curupira);
-				
 		        marvin.init();
+		        
 		        byte[] chunk;
 		        for (int i = 0; i < fileData.length; i = i + 12) {
 		        	if (i + 12 < fileData.length) {
@@ -231,17 +228,13 @@ public class App {
 			if ( fileData != null ) {
 				
 				byte[] mac = readByteFile (fileName.concat(".mac"));
-				
-				// inicio da validacao
-				System.out.println("Inicio da validacao.");
-				
+							
 				BlockCipher curupira = new Curupira();
-		        
 		        MAC marvin = new Marvin();
 		        marvin.setKey(key, sizeKey);
 		        marvin.setCipher(curupira);
-				
 		        marvin.init();
+		        
 		        byte[] chunk;
 		        for (int i = 0; i < fileData.length; i = i + 12) {
 		        	if (i + 12 < fileData.length) {
@@ -289,7 +282,10 @@ public class App {
 			
 			if ( fileData != null ) {
 				
+				Random gen = new Random();
 				byte[] nounce = new byte[12];
+				for (int i = 0; i < 12; i++)
+					nounce[i] = (byte) gen.nextInt(i ^ sizeKey);
 				
 				BlockCipher curupira = new Curupira();
 		        MAC marvin = new Marvin();
@@ -301,7 +297,7 @@ public class App {
 		        ls.setMAC(marvin);
 		        
 		        byte[] tmp = new byte[12];
-		        byte[] cData = ls.encrypt(fileData, fileData.length, tmp);
+		        byte[] cData = ls.encrypt(fileData, fileData.length, null);
 		        byte[] tag = ls.getTag(tmp, sizeMac);
 		        
 				writeByteFile(fileName.concat(".cypher"), cData);
@@ -322,12 +318,12 @@ public class App {
 		
 		while (admissivel == 0) {
 			
-			System.out.print("Digite o nome do arquivo cifrado (com IV E MAC) para " +
+			System.out.print("Digite o nome do arquivo cifrado (sem a extensao '.cypher') para " +
 					"ser validado e decifrado: ");
 			try {fileName = inFromUser.readLine(); 
 			} catch(Exception e){}
 			
-			byte[] fileData = readByteFile (fileName);
+			byte[] fileData = readByteFile (fileName.concat(".cypher"));
 			
 			if ( fileData != null ) {
 			
@@ -336,25 +332,41 @@ public class App {
 
 				BlockCipher curupira = new Curupira();
 				MAC marvin = new Marvin();
-				AED ls = new LetterSoup();
-				
-				ls.setKey(key, sizeKey);
-				ls.setCipher(curupira);
-				ls.setIV(nounce, nounce.length);
-				ls.setMAC(marvin);
-				
-		        byte[] tmp = new byte[12];
-		        byte[] tag = ls.getTag(mac, sizeMac);
-				
+				marvin.setKey(key, sizeKey);
+		        marvin.setCipher(curupira);
+		        marvin.init();
+		        
+		        byte[] chunk;
+		        for (int i = 0; i < fileData.length; i = i + 12) {
+		        	if (i + 12 < fileData.length) {
+		        		chunk = new byte[12];
+		        		chunk = Arrays.copyOfRange(fileData, i, i+12);
+		        	} else {
+		        		chunk = new byte[fileData.length-i];
+		        		chunk = Arrays.copyOfRange(fileData, i, fileData.length-1);
+		        	}
+		        	marvin.update(chunk, chunk.length);
+		        }
+		        byte[] tagFake = new byte[12];
+		        byte[] tag = marvin.getTag(tagFake, 96);
 		        if ( ByteUtil.compareArray(tag, mac) == 1) {
 		        	System.out.println("Arquivo '" + fileName + "' validado.");
-			        byte[] mData = ls.decrypt(fileData, fileData.length, tmp);
+		        	
+		        	AED ls = new LetterSoup();
+					ls.setKey(key, sizeKey);
+					ls.setCipher(curupira);
+					ls.setIV(nounce, nounce.length);
+					ls.setMAC(marvin);
+					
+					byte[] tmp = new byte[12];
+					byte[] mData = ls.decrypt(fileData, fileData.length, tmp);
 			        writeByteFile(fileName, mData);
+		        	
 		        } else {
 		        	System.out.println("ERRO : autenticacao do arquivo '" + fileName +
 		        			"' invalida.");
 		        }
-		        			
+				        			
 				admissivel = 1;
 			} else { // se conseguiu ler o arquivo
 				System.out.println("Nao foi possivel abrir o arquivo : '" + fileName + "'");
@@ -379,7 +391,10 @@ public class App {
 
 			if ( fileData != null ) {
 				
+				Random gen = new Random();
 				byte[] nounce = new byte[12];
+				for (int i = 0; i < 12; i++)
+					nounce[i] = (byte) gen.nextInt(i ^ sizeKey);
 				
 				BlockCipher curupira = new Curupira();
 		        MAC marvin = new Marvin();
@@ -397,7 +412,6 @@ public class App {
 				writeByteFile(fileName.concat(".cypher"), cData);
 				writeByteFile(fileName.concat(".mac"), tag);
 				writeByteFile(fileName.concat(".iv"), nounce);
-				
 				
 				admissivel = 1;
 			} else { // se conseguiu ler o arquivo
@@ -433,12 +447,10 @@ public class App {
 		
 		int admissivel = 0;
 		String fileName = new String();
-		byte[] mBlock = new byte[12];
-		byte[] cBlock = new byte[12];
 		
 		while (admissivel == 0) {
 			
-			System.out.print("Digite o nome do arquivo cifrado (com IV E MAC) para " +
+			System.out.print("Digite o nome do arquivo cifrado (sem a extensao '.cypher') para " +
 					"ser validado e decifrado: ");
 			try {fileName = inFromUser.readLine(); 
 			} catch(Exception e){}
