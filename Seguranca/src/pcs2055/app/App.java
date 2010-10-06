@@ -303,6 +303,9 @@ public class App {
 				writeByteFile(fileName.concat(".cypher"), cData);
 				writeByteFile(fileName.concat(".mac"), tag);
 				writeByteFile(fileName.concat(".iv"), nounce);
+
+		        System.out.print("TAG : ");
+		        ByteUtil.printArray(tag);
 				
 				admissivel = 1;
 			} else {
@@ -331,36 +334,25 @@ public class App {
 				byte[] nounce = readByteFile (fileName.concat(".iv"));
 
 				BlockCipher curupira = new Curupira();
-				MAC marvin = new Marvin();
-				marvin.setKey(key, sizeKey);
-		        marvin.setCipher(curupira);
-		        marvin.init();
+		        MAC marvin = new Marvin();
+		        AED ls = new LetterSoup();
 		        
-		        byte[] chunk;
-		        for (int i = 0; i < fileData.length; i = i + 12) {
-		        	if (i + 12 < fileData.length) {
-		        		chunk = new byte[12];
-		        		chunk = Arrays.copyOfRange(fileData, i, i+12);
-		        	} else {
-		        		chunk = new byte[fileData.length-i];
-		        		chunk = Arrays.copyOfRange(fileData, i, fileData.length-1);
-		        	}
-		        	marvin.update(chunk, chunk.length);
-		        }
-		        byte[] tagFake = new byte[12];
-		        byte[] tag = marvin.getTag(tagFake, 96);
+		        ls.setKey(key, sizeKey);
+		        ls.setCipher(curupira);
+		        ls.setIV(nounce, 12);
+		        ls.setMAC(marvin);
+		        
+		        byte[] tmp = new byte[12];
+		        byte[] cData = ls.encrypt(fileData, fileData.length, tmp);
+		        byte[] tag = ls.getTag(tmp, 12*8);
+		        
+		        System.out.print("TAG : ");
+		        ByteUtil.printArray(tag);
+
 		        if ( ByteUtil.compareArray(tag, mac) == 1) {
 		        	System.out.println("Arquivo '" + fileName + "' validado.");
-		        	
-		        	AED ls = new LetterSoup();
-					ls.setKey(key, sizeKey);
-					ls.setCipher(curupira);
-					ls.setIV(nounce, nounce.length);
-					ls.setMAC(marvin);
-					
-					byte[] tmp = new byte[12];
-					byte[] mData = ls.decrypt(fileData, fileData.length, tmp);
-			        writeByteFile(fileName, mData);
+		        	byte[] mData = ls.decrypt(fileData, fileData.length, tmp);	
+		            writeByteFile(fileName, mData);
 		        	
 		        } else {
 		        	System.out.println("ERRO : autenticacao do arquivo '" + fileName +
@@ -406,7 +398,7 @@ public class App {
 		        ls.setMAC(marvin);
 		        
 		        byte[] tmp = new byte[12];
-		        byte[] cData = ls.encrypt(fileData, fileData.length, tmp);
+		        byte[] cData = ls.decrypt(fileData, fileData.length, tmp);
 		        byte[] tag = ls.getTag(tmp, sizeMac);
 		        
 				writeByteFile(fileName.concat(".cypher"), cData);
