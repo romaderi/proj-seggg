@@ -103,7 +103,7 @@ public class LetterSoup implements AED {
         this.autData = new byte[0];
         this.autData = ByteUtil.append(this.autData, cData, this.autData.length, cData.length);
         
-        return this.autData;
+        return mData;
     }
 
     @Override
