@@ -300,12 +300,9 @@ public class App {
 		        byte[] cData = ls.encrypt(fileData, fileData.length, null);
 		        byte[] tag = ls.getTag(tmp, sizeMac);
 		        
-				writeByteFile(fileName.concat(".cypher"), cData);
+				writeByteFile(fileName.concat(".ciph"), cData);
 				writeByteFile(fileName.concat(".mac"), tag);
 				writeByteFile(fileName.concat(".iv"), nounce);
-
-		        System.out.print("TAG : ");
-		        ByteUtil.printArray(tag);
 				
 				admissivel = 1;
 			} else {
@@ -321,12 +318,12 @@ public class App {
 		
 		while (admissivel == 0) {
 			
-			System.out.print("Digite o nome do arquivo cifrado (sem a extensao '.cypher') para " +
+			System.out.print("Digite o nome do arquivo cifrado (sem a extensao '.ciph') para " +
 					"ser validado e decifrado: ");
 			try {fileName = inFromUser.readLine(); 
 			} catch(Exception e){}
 			
-			byte[] fileData = readByteFile (fileName.concat(".cypher"));
+			byte[] fileData = readByteFile (fileName.concat(".ciph"));
 			
 			if ( fileData != null ) {
 			
@@ -343,16 +340,12 @@ public class App {
 		        ls.setMAC(marvin);
 		        
 		        byte[] tmp = new byte[12];
-		        byte[] cData = ls.encrypt(fileData, fileData.length, tmp);
+		        byte[] mData = ls.decrypt(fileData, fileData.length, tmp);
 		        byte[] tag = ls.getTag(tmp, 12*8);
 		        
-		        System.out.print("TAG : ");
-		        ByteUtil.printArray(tag);
-
 		        if ( ByteUtil.compareArray(tag, mac) == 1) {
 		        	System.out.println("Arquivo '" + fileName + "' validado.");
-		        	byte[] mData = ls.decrypt(fileData, fileData.length, tmp);	
-		            writeByteFile(fileName, mData);
+		        	writeByteFile(fileName, mData);
 		        	
 		        } else {
 		        	System.out.println("ERRO : autenticacao do arquivo '" + fileName +
@@ -371,6 +364,15 @@ public class App {
 		
 		int admissivel = 0;
 		String fileName = new String();
+		String fileName2 = new String();
+		
+		Random gen = new Random();
+		byte[] nounce = new byte[12];
+		byte[] cData = null;
+		
+		BlockCipher curupira = new Curupira();
+        MAC marvin = new Marvin();
+        AED ls = new LetterSoup();
 		
 		while (admissivel == 0) {
 			
@@ -383,29 +385,18 @@ public class App {
 
 			if ( fileData != null ) {
 				
-				Random gen = new Random();
-				byte[] nounce = new byte[12];
 				for (int i = 0; i < 12; i++)
 					nounce[i] = (byte) gen.nextInt(i ^ sizeKey);
 				
-				BlockCipher curupira = new Curupira();
-		        MAC marvin = new Marvin();
-		        AED ls = new LetterSoup();
-		        
 		        ls.setKey(key, sizeKey);
 		        ls.setCipher(curupira);
 		        ls.setIV(nounce, sizeMac);
 		        ls.setMAC(marvin);
 		        
 		        byte[] tmp = new byte[12];
-		        byte[] cData = ls.decrypt(fileData, fileData.length, tmp);
-		        byte[] tag = ls.getTag(tmp, sizeMac);
+		        cData = ls.encrypt(fileData, fileData.length, tmp);
 		        
-				writeByteFile(fileName.concat(".cypher"), cData);
-				writeByteFile(fileName.concat(".mac"), tag);
-				writeByteFile(fileName.concat(".iv"), nounce);
-				
-				admissivel = 1;
+		        admissivel = 1;
 			} else { // se conseguiu ler o arquivo
 				System.out.println("Nao foi possivel abrir o arquivo : '" + fileName + "'");
 			}	
@@ -417,15 +408,20 @@ public class App {
 			
 			System.out.print("Digite o nome do arquivo associado de dados para ser " +
 					"autenticado: ");
-			try {fileName = inFromUser.readLine(); 
+			try {fileName2 = inFromUser.readLine(); 
 			} catch(Exception e){}
 			
-			byte[] fileData = readByteFile (fileName);
+			byte[] fileData = readByteFile (fileName2);
 
 			if ( fileData != null ) {
 				
-				// inicio da autenticacao (arquivo associado)
-				System.out.println("Inicio da autenticacao (arquivo associado).");
+				ls.update(fileData, fileData.length);
+	            byte[] tag = ls.getTag(fileData, 12*8);
+	            
+	            writeByteFile(fileName.concat(".mac"), tag);
+				writeByteFile(fileName.concat(".ciph"), cData);
+				writeByteFile(fileName.concat(".iv"), nounce);
+				
 				
 				admissivel = 1;
 			} else { // se conseguiu ler o arquivo
@@ -439,68 +435,63 @@ public class App {
 		
 		int admissivel = 0;
 		String fileName = new String();
-		
+		String fileName2 = new String();
+		BlockCipher curupira = new Curupira();
+        MAC marvin = new Marvin();
+        AED ls = new LetterSoup();
+        		
+        byte[] fileData2 = null;
+        
 		while (admissivel == 0) {
 			
-			System.out.print("Digite o nome do arquivo cifrado (sem a extensao '.cypher') para " +
+			System.out.print("Digite o nome do arquivo cifrado (sem a extensao '.ciph') para " +
 					"ser validado e decifrado: ");
 			try {fileName = inFromUser.readLine(); 
 			} catch(Exception e){}
 			
-			byte[] fileData = readByteFile (fileName);
+			byte[] fileData = readByteFile (fileName.concat(".ciph"));
 			
 			if ( fileData != null ) {
+				
+				admissivel = 0;
+				while (admissivel == 0) {
+					
+					System.out.print("Digite o nome do arquivo associado de dados para ser" +
+							" autenticado: ");
+					try {fileName2 = inFromUser.readLine(); 
+					} catch(Exception e){}
+					
+					fileData2 = readByteFile (fileName2);
+					admissivel = 1;
+					if ( fileData2 == null ) {
+						System.out.println("Nao foi possivel abrir o arquivo : '" + fileName2 + "'");
+					}
+				}
 				
 				byte[] mac = readByteFile (fileName.concat(".mac"));
 				byte[] nounce = readByteFile (fileName.concat(".iv"));
 
-				BlockCipher curupira = new Curupira();
-				MAC marvin = new Marvin();
-				AED ls = new LetterSoup();
-				
-				ls.setKey(key, sizeKey);
-				ls.setCipher(curupira);
-				ls.setIV(nounce, nounce.length);
-				ls.setMAC(marvin);
-				
+		        ls.setKey(key, sizeKey);
+		        ls.setCipher(curupira);
+		        ls.setIV(nounce, 12);
+		        ls.setMAC(marvin);
+		        
 		        byte[] tmp = new byte[12];
-		        byte[] tag = ls.getTag(mac, sizeMac);
-				
+		        byte[] mData = ls.decrypt(fileData, fileData.length, tmp);
+		        ls.update(fileData2, fileData2.length);
+		        byte[] tag = ls.getTag(tmp, 12*8);
+		        
 		        if ( ByteUtil.compareArray(tag, mac) == 1) {
 		        	System.out.println("Arquivo '" + fileName + "' validado.");
-			        byte[] mData = ls.decrypt(fileData, fileData.length, tmp);
-			        writeByteFile(fileName, mData);
-		        } else {
-		        	System.out.println("ERRO : autenticacao do arquivo '" + fileName +
-		        			"' invalida.");
+		            writeByteFile(fileName, mData);
 		        }
-				
+						
 				admissivel = 1;
 			} else {
-				System.out.println("Nao foi possivel abrir o arquivo : '" + fileName + "'");
+				System.out.println("Nao foi possivel abrir o arquivo : '" + fileName.concat(".ciph") + "'");
 			}
 		}
 		
-		admissivel = 0;
-		while (admissivel == 0) {
-			
-			System.out.print("Digite o nome do arquivo associado de dados para ser" +
-					" autenticado: ");
-			try {fileName = inFromUser.readLine(); 
-			} catch(Exception e){}
-			
-			byte[] fileData = readByteFile (fileName); 
-			if ( fileData != null ) {
-				
-				// inicio da autenticacao (arquivo associado)
-				System.out.println("Inicio da autenticacao (arquivo associado).");
-				
-				admissivel = 1;
-			} else {
-				System.out.println("Nao foi possivel abrir o arquivo : '" + fileName + "'");
-			}
-		
-		}
 		
 	}
 	
