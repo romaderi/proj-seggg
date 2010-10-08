@@ -30,7 +30,23 @@ public class LSTest {
         
         test(plainText, key, header, nounce, Curupira.KEY_SIZE_96);
 
+        ///////////////////////////
         
+        header = new byte[13];
+        plainText = new byte[13];
+        key = new byte[12];
+        nounce = new byte[12];
+        
+        test(plainText, key, header, nounce, Curupira.KEY_SIZE_96);
+
+        ///////////////////////////
+        
+        plainText = new byte[1];
+        key = new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 0xa, 0xb, 0xc};
+        nounce = new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 0xa, 0xb, 0xc};
+        
+        test(plainText, key, null, nounce, Curupira.KEY_SIZE_96);
+
     }
     
     private static void test(byte[] plainText, byte[] key, byte[] header, byte[] nounce, int keybits) {
@@ -45,21 +61,21 @@ public class LSTest {
         ls.setMAC(marvin);
 
         byte[] cData = new byte[12]; // inútil aqui
-        byte[] crypto = ls.encrypt(plainText, 23, cData);
+        byte[] crypto = ls.encrypt(plainText, plainText.length, cData);
         
         ByteUtil.printArray(crypto, "Ciphertext= ");
         
         byte[] tag = ls.getTag(cData, 12*8);
         
         if (header != null) {
-            ls.update(header, 23);
+            ls.update(header, header.length);
             tag = ls.getTag(header, 12*8);
         }
 
         ByteUtil.printArray(tag, "Tag= ");
 
-        byte[] mData = new byte[12]; // inútil aqui
-        byte[] decrypt = ls.decrypt(crypto, 23, mData);
+        byte[] mData = new byte[plainText.length]; // inútil aqui
+        byte[] decrypt = ls.decrypt(crypto, plainText.length, mData);
         
         ByteUtil.printArray(decrypt, "PlainText= ");
         System.out.println("\n");

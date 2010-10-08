@@ -37,6 +37,7 @@ public class App {
 		
 		int sizeKey = 96;
 		int sizeMac = 96;
+		int sizeIV = 96;
 		byte[] key = new byte[12]; 
 		
 		inFromUser = new BufferedReader(new InputStreamReader(System.in));
@@ -59,6 +60,7 @@ public class App {
 					key = new byte[sizeKey/8];
 				} else if (command.equals(Integer.toString(2))) {
 					sizeMac = opcao2();
+					sizeIV = opcao2l();
 				} else if (command.equals(Integer.toString(3))) {
 					key = new byte[sizeKey/8];
 					key = opcao3(sizeKey);
@@ -67,13 +69,13 @@ public class App {
 				} else if (command.equals(Integer.toString(5))) {
 					opcao5(key, sizeKey, sizeMac);
 				} else if (command.equals(Integer.toString(6))) {
-					opcao6(key, sizeKey, sizeMac);
+					opcao6(key, sizeKey, sizeMac, sizeIV);
 				} else if (command.equals(Integer.toString(7))) {
-					opcao7(key, sizeKey, sizeMac);
+					opcao7(key, sizeKey, sizeMac, sizeIV);
 				} else if (command.equals(Integer.toString(8))) {
-					opcao8(key, sizeKey, sizeMac);
+					opcao8(key, sizeKey, sizeMac, sizeIV);
 				} else if (command.equals(Integer.toString(9))) {
-					opcao9(key, sizeKey, sizeMac);
+					opcao9(key, sizeKey, sizeMac, sizeIV);
 				} else if (command.equals("H") || command.equals("h")) {
 					opcaoHelp();
 				}
@@ -120,7 +122,7 @@ public class App {
 		
 		while (admissivel == 0) {
 		
-			System.out.print("Selecione o tamanho de IV e MAC (entre 64 e 96): ");
+			System.out.print("Selecione o tamanho do MAC : ");
 			try {command = inFromUser.readLine(); 
 			} catch(Exception e){}
 			
@@ -129,7 +131,7 @@ public class App {
 				System.out.print("Tamanho nao admissivel. " );
 			} else {
 				t = Integer.parseInt(command);
-				System.out.println("Tamanho de IV e MAC selecionado: " + t + "\n");
+				System.out.println("Tamanho do MAC selecionado: " + t + "\n");
 				admissivel = 1;
 			}
 
@@ -137,7 +139,33 @@ public class App {
 		return t;
 	}
 
+	       private static int opcao2l() {
+	                
+	                int admissivel = 0;
+	                int t = 0;
+	                String command = new String();
+	                
+	                while (admissivel == 0) {
+	                
+	                        System.out.print("Selecione o tamanho do IV : ");
+	                        try {command = inFromUser.readLine(); 
+	                        } catch(Exception e){}
+	                        
+	                        if ( (Integer.parseInt(command) < 64) || 
+	                                 (Integer.parseInt(command) > 96) ) {
+	                                System.out.print("Tamanho nao admissivel. " );
+	                        } else {
+	                                t = Integer.parseInt(command);
+	                                System.out.println("Tamanho do IV selecionado: " + t + "\n");
+	                                admissivel = 1;
+	                        }
 
+	                }
+	                return t;
+	        }
+	
+	
+	
 	private static byte[] opcao3(int sizeKey) {
 		
 		int admissivel = 0;
@@ -201,7 +229,7 @@ public class App {
 		        }
 		        
 		        byte[] tagFake = new byte[12];
-		        byte[] tag = marvin.getTag(tagFake, 96);
+		        byte[] tag = marvin.getTag(tagFake, sizeMac);
 		        
 				writeByteFile(fileName.concat(".mac"), tag);
 		        
@@ -219,7 +247,7 @@ public class App {
 		
 		while (admissivel == 0) {
 			
-			System.out.print("Digite o nome do arquivo (MAC é obtido automaticament) " +
+			System.out.print("Digite o nome do arquivo (MAC ï¿½ obtido automaticament) " +
 					"para ser validado: ");
 			try {fileName = inFromUser.readLine(); 
 			} catch(Exception e){}
@@ -248,8 +276,10 @@ public class App {
 		        }
 		        
 		        byte[] tagFake = new byte[12];
-		        byte[] tag = marvin.getTag(tagFake, 96);
+		        byte[] tag = marvin.getTag(tagFake, sizeMac);
 
+		        ByteUtil.printArray(tag);
+		        
 		        if ( ByteUtil.compareArray(tag, mac) == 1) {
 		        	System.out.println("Arquivo '" + fileName + "' validado.");
 		        } else {
@@ -266,7 +296,7 @@ public class App {
 		
 	}
 	
-	private static void opcao6(byte[] key, int sizeKey, int sizeMac) {
+	private static void opcao6(byte[] key, int sizeKey, int sizeMac, int sizeIV) {
 		
 		int admissivel = 0;
 		String fileName = new String();
@@ -283,8 +313,8 @@ public class App {
 			if ( fileData != null ) {
 				
 				Random gen = new Random();
-				byte[] nounce = new byte[12];
-				for (int i = 0; i < 12; i++)
+				byte[] nounce = new byte[sizeIV/8];
+				for (int i = 0; i < sizeIV/8; i++)
 					nounce[i] = (byte) gen.nextInt(i ^ sizeKey);
 				
 				BlockCipher curupira = new Curupira();
@@ -293,7 +323,7 @@ public class App {
 		        
 		        ls.setKey(key, sizeKey);
 		        ls.setCipher(curupira);
-		        ls.setIV(nounce, sizeMac);
+		        ls.setIV(nounce, nounce.length);
 		        ls.setMAC(marvin);
 		        
 		        byte[] tmp = new byte[12];
@@ -311,7 +341,7 @@ public class App {
 		}
 	}
 	
-	private static void opcao7(byte[] key, int sizeKey, int sizeMac) {
+	private static void opcao7(byte[] key, int sizeKey, int sizeMac, int sizeIV) {
 		
 		int admissivel = 0;
 		String fileName = new String();
@@ -336,12 +366,12 @@ public class App {
 		        
 		        ls.setKey(key, sizeKey);
 		        ls.setCipher(curupira);
-		        ls.setIV(nounce, 12);
+		        ls.setIV(nounce, nounce.length);
 		        ls.setMAC(marvin);
 		        
 		        byte[] tmp = new byte[12];
 		        byte[] mData = ls.decrypt(fileData, fileData.length, tmp);
-		        byte[] tag = ls.getTag(tmp, 12*8);
+		        byte[] tag = ls.getTag(tmp, sizeMac);
 		        
 		        if ( ByteUtil.compareArray(tag, mac) == 1) {
 		        	System.out.println("Arquivo '" + fileName + "' validado.");
@@ -360,14 +390,14 @@ public class App {
 		}
 	}
 	
-	private static void opcao8(byte[] key, int sizeKey, int sizeMac) {
+	private static void opcao8(byte[] key, int sizeKey, int sizeMac, int sizeIV) {
 		
 		int admissivel = 0;
 		String fileName = new String();
 		String fileName2 = new String();
 		
 		Random gen = new Random();
-		byte[] nounce = new byte[12];
+		byte[] nounce = new byte[sizeIV/8];
 		byte[] cData = null;
 		
 		BlockCipher curupira = new Curupira();
@@ -385,12 +415,12 @@ public class App {
 
 			if ( fileData != null ) {
 				
-				for (int i = 0; i < 12; i++)
+				for (int i = 0; i < sizeIV/8; i++)
 					nounce[i] = (byte) gen.nextInt(i ^ sizeKey);
 				
 		        ls.setKey(key, sizeKey);
 		        ls.setCipher(curupira);
-		        ls.setIV(nounce, sizeMac);
+		        ls.setIV(nounce, nounce.length*8);
 		        ls.setMAC(marvin);
 		        
 		        byte[] tmp = new byte[12];
@@ -416,7 +446,7 @@ public class App {
 			if ( fileData != null ) {
 				
 				ls.update(fileData, fileData.length);
-	            byte[] tag = ls.getTag(fileData, 12*8);
+	            byte[] tag = ls.getTag(fileData, sizeMac);
 	            
 	            writeByteFile(fileName.concat(".mac"), tag);
 				writeByteFile(fileName.concat(".ciph"), cData);
@@ -431,7 +461,7 @@ public class App {
 		}
 	}
 	
-	private static void opcao9(byte[] key, int sizeKey, int sizeMac) {
+	private static void opcao9(byte[] key, int sizeKey, int sizeMac, int sizeIV) {
 		
 		int admissivel = 0;
 		String fileName = new String();
@@ -473,13 +503,13 @@ public class App {
 
 		        ls.setKey(key, sizeKey);
 		        ls.setCipher(curupira);
-		        ls.setIV(nounce, 12);
+		        ls.setIV(nounce, nounce.length*8);
 		        ls.setMAC(marvin);
 		        
 		        byte[] tmp = new byte[12];
 		        byte[] mData = ls.decrypt(fileData, fileData.length, tmp);
 		        ls.update(fileData2, fileData2.length);
-		        byte[] tag = ls.getTag(tmp, 12*8);
+		        byte[] tag = ls.getTag(tmp, sizeMac);
 		        
 		        if ( ByteUtil.compareArray(tag, mac) == 1) {
 		        	System.out.println("Arquivo '" + fileName + "' validado.");
@@ -497,10 +527,10 @@ public class App {
 	
 	private static void opcaoHelp(){
 		System.out.println("1. Selecionar um tamanho de chave dentre os valores " +
-		"admissíveis (96, 144, 192)");
-		System.out.println("2. Selecionar um tamanho de IV e de MAC entre o mínimo " +
+		"admissï¿½veis (96, 144, 192)");
+		System.out.println("2. Selecionar um tamanho de IV e de MAC entre o mï¿½nimo " +
 				"de 64 bits e o tamanho completo do bloco");
-		System.out.println("3. Escolher uma senha alfanumérica (ASCII) de ate 12, " +
+		System.out.println("3. Escolher uma senha alfanumï¿½rica (ASCII) de ate 12, " +
 				"18 ou 24 caracteres, conforme o tamanho da chave");
 		System.out.println("4. Selecionar um arquivo para ser apenas autenticado");
 		System.out.println("5. Selecionar um arquivo com seu respectivo MAC para " +
