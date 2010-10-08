@@ -216,6 +216,13 @@ public class App {
 		        marvin.setCipher(curupira);
 		        marvin.init();
 		        
+		        //fileData = new byte[12];
+		        //byte[] fileData2 = {0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 
+		        //		0x6, 0x7, 0x8, 0x9, 0x0A, 0x0B, 0x0C, 0x0D};
+		        byte[] fileData2 = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 
+		        		0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
+		        fileData = Arrays.copyOf(fileData2, fileData2.length);
+		      
 		        byte[] chunk;
 		        for (int i = 0; i < fileData.length; i = i + 12) {
 		        	if (i + 12 < fileData.length) {
@@ -223,15 +230,18 @@ public class App {
 		        		chunk = Arrays.copyOfRange(fileData, i, i+12);
 		        	} else {
 		        		chunk = new byte[fileData.length-i];
-		        		chunk = Arrays.copyOfRange(fileData, i, fileData.length-1);
+		        		chunk = Arrays.copyOfRange(fileData, i, fileData.length);
 		        	}
+		        	ByteUtil.printArray(chunk);
 		        	marvin.update(chunk, chunk.length);
 		        }
 		        
 		        byte[] tagFake = new byte[12];
 		        byte[] tag = marvin.getTag(tagFake, sizeMac);
 		        
-				writeByteFile(fileName.concat(".mac"), tag);
+		        ByteUtil.printArray(tag);
+		        
+				//writeByteFile(fileName.concat(".mac"), tag);
 		        
 				admissivel = 1;
 			} else { // se conseguiu ler o arquivo
@@ -270,7 +280,7 @@ public class App {
 		        		chunk = Arrays.copyOfRange(fileData, i, i+12);
 		        	} else {
 		        		chunk = new byte[fileData.length-i];
-		        		chunk = Arrays.copyOfRange(fileData, i, fileData.length-1);
+		        		chunk = Arrays.copyOfRange(fileData, i, fileData.length);
 		        	}
 		        	marvin.update(chunk, chunk.length);
 		        }
@@ -376,7 +386,7 @@ public class App {
 		        if ( ByteUtil.compareArray(tag, mac) == 1) {
 		        	System.out.println("Arquivo '" + fileName + "' validado.");
 		        	writeByteFile(fileName, mData);
-		        	
+			        	
 		        } else {
 		        	System.out.println("ERRO : autenticacao do arquivo '" + fileName +
 		        			"' invalida.");
@@ -451,7 +461,6 @@ public class App {
 	            writeByteFile(fileName.concat(".mac"), tag);
 				writeByteFile(fileName.concat(".ciph"), cData);
 				writeByteFile(fileName.concat(".iv"), nounce);
-				
 				
 				admissivel = 1;
 			} else { // se conseguiu ler o arquivo
