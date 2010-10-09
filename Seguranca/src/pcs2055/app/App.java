@@ -288,8 +288,6 @@ public class App {
 		        byte[] tagFake = new byte[12];
 		        byte[] tag = marvin.getTag(tagFake, sizeMac);
 
-		        ByteUtil.printArray(tag);
-		        
 		        if ( ByteUtil.compareArray(tag, mac) == 1) {
 		        	System.out.println("Arquivo '" + fileName + "' validado.");
 		        } else {
@@ -523,6 +521,9 @@ public class App {
 		        if ( ByteUtil.compareArray(tag, mac) == 1) {
 		        	System.out.println("Arquivo '" + fileName + "' validado.");
 		            writeByteFile(fileName, mData);
+		        } else {
+		        	System.out.println("ERRO : autenticacao do arquivo '" + fileName +
+        			"' invalida.");
 		        }
 						
 				admissivel = 1;
@@ -557,7 +558,6 @@ public class App {
 	
 	public static byte[] readByteFile(String fileName) {
 
-		byte[] tmp = new byte[0];
 		byte[] dataIn = new byte[0];
 		
 		try {
@@ -565,15 +565,11 @@ public class App {
 			InputStream in = new FileInputStream(file);
 			in = new BufferedInputStream(in);
 			
-			int byteIn = in.read();
-			while (byteIn != -1) {
-				tmp = Arrays.copyOf(dataIn, dataIn.length);
-				dataIn = new byte[tmp.length + 1];
-				int j;
-				for (j = 0; j < tmp.length; j++)
-					dataIn[j] = tmp[j];
-				dataIn[j] = ByteUtil.convertIntToHexa(byteIn);
-				byteIn = in.read();
+			byte[] bufferIn = new byte[102400]; // leitura de 10kb em 10kb
+			int inLength = in.read(bufferIn);
+			while ( inLength > 0 ) {
+				dataIn = ByteUtil.append(dataIn, bufferIn, dataIn.length, inLength);
+				inLength = in.read(bufferIn);
 			}
 			
 			in.close();
