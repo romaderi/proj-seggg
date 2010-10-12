@@ -110,8 +110,9 @@ public class KeyScheduler {
     
     
     private byte[] sigma(byte[] b, int round) {
-    	
+
     	byte[] q = scheduleConstant(round, this.t);
+    	
     	return ByteUtil.xor(b, q, b.length);
     }
     

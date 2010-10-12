@@ -2,6 +2,7 @@ package pcs2055.ls;
 
 import java.util.Arrays;
 
+import pcs2055.curupira.Curupira;
 import pcs2055.interfaces.AED;
 import pcs2055.interfaces.BlockCipher;
 import pcs2055.interfaces.MAC;
@@ -161,6 +162,7 @@ public class LetterSoup implements AED {
             byte[] aData = Arrays.copyOfRange(this.autData, i, b);
             this.mac.update(aData, b-i);
             this.mac.getTag(A, tagBits); // MAC Tag Buffer (parece lanche do McDonnads!)
+            
         }
         
         return A;
@@ -176,7 +178,7 @@ public class LetterSoup implements AED {
         
         // D <- ∗ (L, H, tau)  
         //byte[] D = new byte[tagBits/8];
-        byte[] D = new byte[12];
+        byte[] D = new byte[n];
         this.mac.init(L);
         for (int i=0; i < this.H.length; i+=n) {
             
@@ -189,7 +191,6 @@ public class LetterSoup implements AED {
             this.mac.getTag(D, tagBits); 
         }
 
-        // errado nos dois último bytes
         return D;
     }
 
