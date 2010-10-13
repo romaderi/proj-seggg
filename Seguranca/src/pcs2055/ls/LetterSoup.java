@@ -151,7 +151,6 @@ public class LetterSoup implements AED {
         int n = this.cipher.blockBits()/8; 
 
         byte[] A = new byte[n];
-        ByteUtil.printArray(this.R, "R= ");
         this.mac.init(this.R);
         for (int i=0; i < this.autData.length; i+=n) {
             
@@ -165,7 +164,6 @@ public class LetterSoup implements AED {
             
         }
         
-        ByteUtil.printArray(A, "A= ");
         return A;
     }
 
@@ -191,7 +189,6 @@ public class LetterSoup implements AED {
             this.mac.getTag(D, tagBits); 
         }
 
-        ByteUtil.printArray(D, "D= ");
         return D;
     }
 
