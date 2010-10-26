@@ -1,9 +1,9 @@
 package pcs2055.test;
 
-import pcs2055.curupira.Curupira;
-import pcs2055.interfaces.BlockCipher;
-import pcs2055.interfaces.MAC;
-import pcs2055.marvin.Marvin;
+import pcs2055.blockCipher.BlockCipher;
+import pcs2055.blockCipher.Curupira;
+import pcs2055.mac.MAC;
+import pcs2055.mac.Marvin;
 import pcs2055.math.ByteUtil;
 
 public class MarvinTest {

@@ -1,7 +1,7 @@
 package pcs2055.test;
 
-import pcs2055.curupira.Round;
-import pcs2055.curupira.SBox;
+import pcs2055.blockCipher.Round;
+import pcs2055.blockCipher.SBox;
 import pcs2055.math.ByteUtil;
 import pcs2055.math.MathUtil;
 

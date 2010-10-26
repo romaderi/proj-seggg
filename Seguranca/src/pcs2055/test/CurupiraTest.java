@@ -1,8 +1,7 @@
 package pcs2055.test;
 
-import pcs2055.curupira.*;
+import pcs2055.blockCipher.*;
 
-import pcs2055.curupira.*;
 import pcs2055.math.ByteUtil;
 
 public class CurupiraTest {

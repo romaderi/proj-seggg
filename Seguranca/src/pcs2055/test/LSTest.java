@@ -1,11 +1,11 @@
 package pcs2055.test;
 
-import pcs2055.curupira.Curupira;
-import pcs2055.interfaces.AED;
-import pcs2055.interfaces.BlockCipher;
-import pcs2055.interfaces.MAC;
-import pcs2055.ls.LetterSoup;
-import pcs2055.marvin.Marvin;
+import pcs2055.aed.AED;
+import pcs2055.aed.LetterSoup;
+import pcs2055.blockCipher.BlockCipher;
+import pcs2055.blockCipher.Curupira;
+import pcs2055.mac.MAC;
+import pcs2055.mac.Marvin;
 import pcs2055.math.ByteUtil;
 
 public class LSTest {
@@ -64,17 +64,34 @@ public class LSTest {
         header = new byte[1];
         test(msg, key, header, nounce);        
 
-//        System.out.println("\n** #0-0 Set 4 - key = 0, msg != 0, add != 0, nounce = 0 **");
-//
-//        msg = new byte[] {1};
-//        header = new byte[] {1};
-//        test(msg, key, header, nounce);        
+        System.out.println("\n** #0-0 Set 4 - key = 0, msg != 0, add != 0, nounce = 0 **");
+
+        msg = new byte[] {1};
+        header = new byte[] {1};
+        test(msg, key, header, nounce);        
 
         System.out.println("\n** #0-1 Set 1 - key = 0, msg = 0, add = null, nounce != 0 **");
 
         msg = new byte[1];
         nounce = new byte[] {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c};
         test(msg, key, null, nounce);        
+
+        System.out.println("\n** #0-1 Set 2 - key = 0, msg != 0, add = null, nounce != 0 **");
+
+        msg = new byte[]{1, 2, 3, 4};
+        test(msg, key, null, nounce);        
+
+        System.out.println("\n** #0-1 Set 3 - key = 0, msg = 0, add = 0, nounce != 0 **");
+
+        msg = new byte[28];
+        header = new byte[28];
+        test(msg, key, header, nounce);        
+
+        System.out.println("\n** #0-1 Set 4 - key = 0, msg != 0, add != 0, nounce != 0 **");
+
+        msg = new byte[] {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c};
+        header = new byte[] {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c};
+        test(msg, key, header, nounce);        
 
     }
         
