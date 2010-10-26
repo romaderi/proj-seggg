@@ -12,15 +12,15 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Random;
 
-import pcs2055.curupira.Curupira;
-import pcs2055.interfaces.AED;
-import pcs2055.interfaces.BlockCipher;
-import pcs2055.interfaces.MAC;
-import pcs2055.ls.LetterSoup;
-import pcs2055.marvin.Marvin;
+import pcs2055.aed.AED;
+import pcs2055.aed.LetterSoup;
+import pcs2055.blockCipher.BlockCipher;
+import pcs2055.blockCipher.Curupira;
+import pcs2055.mac.MAC;
+import pcs2055.mac.Marvin;
 import pcs2055.math.ByteUtil;
 
-public class App {
+public class App1 {
 
 	static private BufferedReader inFromUser;
 	
@@ -532,10 +532,10 @@ public class App {
 	
 	private static void opcaoHelp(){
 		System.out.println("1. Selecionar um tamanho de chave dentre os valores " +
-		"admiss�veis (96, 144, 192)");
-		System.out.println("2. Selecionar um tamanho de IV e de MAC entre o m�nimo " +
+		"admissíveis (96, 144, 192)");
+		System.out.println("2. Selecionar um tamanho de IV e de MAC entre o mínimo " +
 				"de 64 bits e o tamanho completo do bloco");
-		System.out.println("3. Escolher uma senha alfanum�rica (ASCII) de ate 12, " +
+		System.out.println("3. Escolher uma senha alfanumérica (ASCII) de ate 12, " +
 				"18 ou 24 caracteres, conforme o tamanho da chave");
 		System.out.println("4. Selecionar um arquivo para ser apenas autenticado");
 		System.out.println("5. Selecionar um arquivo com seu respectivo MAC para " +
