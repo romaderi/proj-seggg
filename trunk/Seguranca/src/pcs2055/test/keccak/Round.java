@@ -6,40 +6,40 @@ package pcs2055.test.keccak;
  */
 public class Round {
 
-    private byte[] teta;
-    private byte[] rho;
-    private byte[] pi;
-    private byte[] chi;
-    private byte[] iota;
+    private int[] teta;
+    private int[] rho;
+    private int[] pi;
+    private int[] chi;
+    private int[] iota;
     
-    public byte[] beforeTeta() {
+    public int[] beforeTeta() {
         return teta;
     }
-    public void setTeta(byte[] teta) {
+    public void setTeta(int[] teta) {
         this.teta = teta;
     }
-    public byte[] beforeRho() {
+    public int[] beforeRho() {
         return rho;
     }
-    public void setRho(byte[] rho) {
+    public void setRho(int[] rho) {
         this.rho = rho;
     }
-    public byte[] beforePi() {
+    public int[] beforePi() {
         return pi;
     }
-    public void setPi(byte[] pi) {
+    public void setPi(int[] pi) {
         this.pi = pi;
     }
-    public byte[] beforeChi() {
+    public int[] beforeChi() {
         return chi;
     }
-    public void setChi(byte[] chi) {
+    public void setChi(int[] chi) {
         this.chi = chi;
     }
-    public byte[] beforeIota() {
+    public int[] beforeIota() {
         return iota;
     }
-    public void setIota(byte[] iota) {
+    public void setIota(int[] iota) {
         this.iota = iota;
     }
     

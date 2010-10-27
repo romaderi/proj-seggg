@@ -128,6 +128,17 @@ public class ByteUtil {
             System.out.print(Integer.toHexString((short)(0x000000FF & v[i])) + " ");
     }
 
+    public static void printArray(int[] v, String label) {
+        System.out.print("\n"+label);
+        printArray(v);
+    }
+    
+    public static void printArray(int[] v) {
+        
+        for (int i=0; i<v.length; i++)
+            System.out.print(Integer.toHexString(v[i]) + " ");
+    }
+
     public static void printMatriz(byte[][] m) {
         
         for (int i=0; i<m.length; i++) {
@@ -239,6 +250,27 @@ public class ByteUtil {
     		if ( x[i] != y[i])
     			return 0;
     	return 1;
+    }
+    
+    /**
+     * Converte string que possui caracteres hexadecimais
+     * @param str
+     * @return vetor de bytes correspondente à string
+     */
+    public static int[] convertHexString(String str) {
+        
+        int n = str.length();
+        if (n%2 == 1) { // ímpar
+            str = "0" + str;
+            n++;
+        }
+        
+        int[] bytes = new int[n/2];
+        for (int i=0; i<n/2; i++) {
+            String hex = str.substring(2*i, 2*i+2);
+            bytes[i] = 0xFF & Integer.parseInt(hex, 16); // unsignedInt = signedByte & 0xFF
+        }
+        return bytes;
     }
 
 }
