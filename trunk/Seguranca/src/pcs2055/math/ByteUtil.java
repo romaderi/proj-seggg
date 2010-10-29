@@ -257,7 +257,7 @@ public class ByteUtil {
      * @param str
      * @return vetor de bytes correspondente à string
      */
-    public static int[] convertHexString(String str) {
+    public static byte[] convertHexString(String str) {
         
         int n = str.length();
         if (n%2 == 1) { // ímpar
@@ -265,10 +265,11 @@ public class ByteUtil {
             n++;
         }
         
-        int[] bytes = new int[n/2];
+        byte[] bytes = new byte[n/2];
         for (int i=0; i<n/2; i++) {
             String hex = str.substring(2*i, 2*i+2);
-            bytes[i] = 0xFF & Integer.parseInt(hex, 16); // unsignedInt = signedByte & 0xFF
+            // unsignedInt = signedByte & 0xFF
+            bytes[i] = (byte) (0xFF & Integer.parseInt(hex, 16));
         }
         return bytes;
     }
