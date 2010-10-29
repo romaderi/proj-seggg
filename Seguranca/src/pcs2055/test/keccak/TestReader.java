@@ -60,7 +60,7 @@ public class TestReader {
                     Matcher matcher = pt.matcher(line);
                     if (matcher.matches()) {
                         String s = matcher.group(1);
-                        System.out.println(s);
+                        System.out.print(s);
                         test = new CaseTest();
                         test.setSigma0(ByteUtil.convertHexString(s));
                         state = SearchState.XOR1;
@@ -74,7 +74,7 @@ public class TestReader {
                     matcher = pt.matcher(line);
                     if (matcher.matches()) {
                         String s = matcher.group(2);
-                        System.out.println(s);
+                        System.out.print(s);
                         test.setXor1(ByteUtil.convertHexString(s));
                         state = SearchState.ROUNDS1;
                         out = true;
