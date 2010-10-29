@@ -138,6 +138,12 @@ public class ByteUtil {
         for (int i=0; i<v.length; i++)
             System.out.print(Integer.toHexString(v[i]) + " ");
     }
+    
+    public static void printArray(long[] v) {
+        
+        for (int i=0; i<v.length; i++)
+            System.out.print(Long.toHexString(v[i]) + " ");
+    }
 
     public static void printMatriz(byte[][] m) {
         
