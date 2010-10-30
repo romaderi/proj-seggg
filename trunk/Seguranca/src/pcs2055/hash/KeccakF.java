@@ -32,9 +32,8 @@ public class KeccakF {
     public static long[] f(long[] aData) {
     	
     	long[] data = new long[25];
-        //for ( indexRound = 0; indexRound < nt; indexRound++){
+        //for ( indexRound = 0; indexRound < nt; indexRound++)
         //	data = round(data);
-        //}
     	data = round(aData);
         return data;
     }
@@ -42,11 +41,10 @@ public class KeccakF {
     private static long[] round(long[] data) {
 
         long[] aData = theta(data);
-        /*aData = rho(aData);
+        aData = rho(aData);
         aData = pi(aData);
         aData = chi(aData);
-        aData = iota(aData);*/
-        return aData;
+        return iota(aData);
     }
     
     private static long[] theta(long[] data) {
