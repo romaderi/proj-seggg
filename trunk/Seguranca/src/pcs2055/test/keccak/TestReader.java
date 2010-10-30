@@ -6,20 +6,17 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import pcs2055.math.ByteUtil;
 
-import com.sun.xml.internal.ws.org.objectweb.asm.ByteVector;
-
 public class TestReader {
     
 
-    private enum SearchState {SIGMA0, XOR1, ROUNDS1, PERMUTATION1, Z0, 
-        SIGMA1, XOR2, ROUNDS2, PERMUTATION2, Z1};
-    private enum SearchSubState {THETHA, RHO, PI, CHI, IOTA};
+    private enum SearchState {SIGMA0, XOR1, ROUNDS1, Z0, SIGMA1, XOR2, ROUNDS2, Z1};
 
     private List<CaseTest> tests;
     private BufferedReader br;
@@ -46,49 +43,156 @@ public class TestReader {
 
         // inicializando variáveis
         SearchState state = SearchState.SIGMA0;
-        CaseTest test = new CaseTest();
-        boolean out = false; // flag auxiliar (mais para os testes)
+        tests = new ArrayList<CaseTest>();
+        CaseTest test = null;
 
         String line = br.readLine();
-        while (line != null && !out) {
+        while (line != null) {
             
             
             switch(state) { // máquina de estados
                 
                 case SIGMA0:
+                    line = br.readLine();
+                    if (line == null)
+                        break; // acabou! =)
                     Pattern pt = Pattern.compile("sigma0 = 0x(\\p{XDigit}*)");
                     Matcher matcher = pt.matcher(line);
                     if (matcher.matches()) {
                         String s = matcher.group(1);
-                        System.out.print(s);
                         test = new CaseTest();
                         test.setSigma0(ByteUtil.convertHexString(s));
                         state = SearchState.XOR1;
                     }
                     break;
-                
+                                    
                 case XOR1:
                     
                     // primeiro * é quantificador de espaço em branco
+                    line = br.readLine();
                     pt = Pattern.compile("state after xor *= (0x)?(\\p{XDigit}*)");
                     matcher = pt.matcher(line);
                     if (matcher.matches()) {
                         String s = matcher.group(2);
-                        System.out.print(s);
                         test.setXor1(ByteUtil.convertHexString(s));
                         state = SearchState.ROUNDS1;
-                        out = true;
+                        br.readLine(); // come linha em branco
+                        br.readLine(); // come comentário /* Number of round:0 */
                     }
                     break;
-            }
-            
-            line = br.readLine();
+                
+                case ROUNDS1:
+                    
+                    Round round = this.parseRound();
+                    test.getRounds1().add(round);
+                    
+                    // e agora, será que tem mais rounds?
+                    pt = Pattern.compile("state after permutation = (\\p{XDigit}*)");
+                    // line pode ser comentário "number of rounds" ou "state after permutation"
+                    matcher = pt.matcher(br.readLine());
+                    if (matcher.matches()) {
+                        String s = matcher.group(1);
+                        test.setPermutation1(ByteUtil.convertHexString(s));
+                        state = SearchState.Z0;
+                    }
+                    break;
+                    
+                case Z0:
+                    
+                    line = br.readLine();
+                    pt = Pattern.compile("z0(\\(10\\))? *= (\\p{XDigit}*)");
+                    matcher = pt.matcher(line);
+                    if (matcher.matches()) {
+                        String s = matcher.group(2);
+                        test.setZ0(ByteUtil.convertHexString(s));
+                        state = SearchState.SIGMA1;
+                    }                    
+                    break;
+                    
+                case SIGMA1:
+                    
+                    line = br.readLine();
+                    pt = Pattern.compile("sigma1 *= 0x(\\p{XDigit}*)");
+                    matcher = pt.matcher(line);
+                    if (matcher.matches()) {
+                        String s = matcher.group(1);
+                        test.setSigma1(ByteUtil.convertHexString(s));
+                        state = SearchState.XOR2;
+                    }                    
+                    break;
+                    
+                case XOR2:
+                    
+                    line = br.readLine();
+                    pt = Pattern.compile("state after xor *= (0x)?(\\p{XDigit}*)");
+                    matcher = pt.matcher(line);
+                    if (matcher.matches()) {
+                        String s = matcher.group(2);
+                        test.setXor2(ByteUtil.convertHexString(s));
+                        state = SearchState.ROUNDS2;
+                        br.readLine(); // come linha em branco
+                        br.readLine(); // come comentário /* Number of round:0 */
+                    }
+                    break;
+                    
+                case ROUNDS2:
+                    
+                    round = this.parseRound();
+                    test.getRounds2().add(round);
+                    
+                    // e agora, será que tem mais rounds?
+                    pt = Pattern.compile("state after permutation = (\\p{XDigit}*)");
+                    // line pode ser comentário "number of rounds" ou "state after permutation"
+                    line = br.readLine();
+                    matcher = pt.matcher(line);
+                    if (matcher.matches()) {
+                        String s = matcher.group(1);
+                        test.setPermutation2(ByteUtil.convertHexString(s));
+                        state = SearchState.Z1;
+                    }
+                    break;    
+                    
+                case Z1:
+                    
+                    line = br.readLine();
+                    pt = Pattern.compile("z1(\\(10\\))? *= (\\p{XDigit}*)");
+                    matcher = pt.matcher(line);
+                    if (matcher.matches()) {
+                        String s = matcher.group(2);
+                        test.setZ1(ByteUtil.convertHexString(s));
+                        state = SearchState.SIGMA0;
+                        this.tests.add(test);
+                    }                    
+                    break;                    
+            }            
         }
-        
-        ByteUtil.printArray(test.getSigma0(), "sigma0= ");
-        ByteUtil.printArray(test.afterXor1(), "after xor= ");
-        
+
         return this.tests;
+    }
+    
+    private Round parseRound() throws IOException {
+        
+        Round round = new Round();
+        
+        round.setTeta(this.extractRoundValue());
+        round.setRho(this.extractRoundValue());
+        round.setPi(this.extractRoundValue());
+        round.setChi(this.extractRoundValue());
+        round.setIota(this.extractRoundValue());
+        
+        return round;
+    }
+    
+    private byte[] extractRoundValue() throws IOException {
+
+        Pattern pt = Pattern.compile("state before \\w*:? *= (\\p{XDigit}*)");
+        String line = br.readLine();
+        Matcher matcher = pt.matcher(line);
+        if (matcher.matches()) {
+            String s = matcher.group(1);
+            return ByteUtil.convertHexString(s);
+        }
+        else return null;
     }
     
     /**
