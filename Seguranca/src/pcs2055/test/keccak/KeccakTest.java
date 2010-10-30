@@ -22,6 +22,8 @@ public class KeccakTest {
         
         TestReader reader = new TestReader(TEST_FILE1);
         this.tests = reader.parseTests();
+        for (CaseTest t: tests)
+            t.print();
     }
 
     @Test

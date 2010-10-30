@@ -1,5 +1,7 @@
 package pcs2055.test.keccak;
 
+import pcs2055.math.ByteUtil;
+
 /**
  * Representa os resultados de um round do keccak
  *
@@ -41,6 +43,14 @@ public class Round {
     }
     public void setIota(byte[] iota) {
         this.iota = iota;
+    }
+
+    public void print() {
+        ByteUtil.printArray(teta, "theta= ");
+        ByteUtil.printArray(rho, "rho= ");
+        ByteUtil.printArray(pi, "pi= ");
+        ByteUtil.printArray(chi, "chi= ");
+        ByteUtil.printArray(iota, "iota= ");    
     }
     
     

@@ -1,6 +1,9 @@
 package pcs2055.test.keccak;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import pcs2055.math.ByteUtil;
 
 /**
  * Representa UM teste do Keccak, com os valores de entrada 
@@ -11,12 +14,12 @@ public class CaseTest {
 
     private byte[] sigma0;
     private byte[] xor1;
-    private List<Round> rounds1;
+    private List<Round> rounds1 = new ArrayList<Round>();
     private byte[] permutation1;
     private byte[] z0;
     private byte[] sigma1;
     private byte[] xor2;
-    private List<Round> rounds2;
+    private List<Round> rounds2 = new ArrayList<Round>();
     private byte[] permutation2;
     private byte[] z1;
     
@@ -82,6 +85,24 @@ public class CaseTest {
     }
     public void setZ1(byte[] z1) {
         this.z1 = z1;
+    }
+    
+    public void print() {
+        
+        ByteUtil.printArray(sigma0, "sigma0= ");
+        ByteUtil.printArray(xor1, "after xor1= ");
+        for (Round r: rounds1) {
+            r.print();
+        }
+        ByteUtil.printArray(permutation1, "after permutation1= ");
+        ByteUtil.printArray(z0, "z0= ");
+        ByteUtil.printArray(sigma1, "sigma1= ");
+        ByteUtil.printArray(xor2, "after xor2= ");
+        for (Round r: rounds2) {
+            r.print();
+        }
+        ByteUtil.printArray(permutation2, "after permutation2= ");
+        ByteUtil.printArray(z1, "z1= ");        
     }
     
 }
