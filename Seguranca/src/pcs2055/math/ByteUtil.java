@@ -166,6 +166,16 @@ public class ByteUtil {
         return c;
     }
     
+    public static long[] xor(long[] a, long[] b, int length) {
+        
+        long[] c = new long[length];
+        for (int i=0; i<length; i++) {
+            c[i] = (long)(a[i] ^ b[i]);
+        }
+        
+        return c;
+    }
+    
     public static byte xtimes (byte b){
     	int i = (int)(b) & 0xFF;
     	if ( b < 0)
@@ -279,5 +289,35 @@ public class ByteUtil {
         }
         return bytes;
     }
+    
+    public static byte[] longToByte (long val) {
+
+    	byte[] buf = new byte[8];
+    	buf[0] = (byte)val;
+		buf[1] = (byte)(val >>> 8);
+		buf[2] = (byte)(val >>> 16);
+		buf[3] = (byte)(val >>> 24);
+		buf[4] = (byte)(val >>> 32);
+		buf[5] = (byte)(val >>> 40);
+		buf[6] = (byte)(val >>> 48);
+		buf[7] = (byte)(val >>> 56);
+		return buf;
+	}
+    
+    public static long byteToLong (byte[] val) {
+		
+    	long buf;
+    	buf = val[0] |
+    		  val[1] << 8 |
+    		  val[2] << 16 |
+    		  val[3] << 24 |
+    		  val[4] << 32 |
+    		  val[5] << 40 |
+    		  val[6] << 48 |
+    		  val[7] << 56;
+		return buf;
+	}
+    
+
 
 }

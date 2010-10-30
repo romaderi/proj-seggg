@@ -1,5 +1,9 @@
 package pcs2055.hash;
 
+import java.math.BigInteger;
+
+import pcs2055.math.ByteUtil;
+
 public class Keccak implements HashFunction {
 
 	private int b = 1600;
@@ -7,10 +11,14 @@ public class Keccak implements HashFunction {
 	private int r = 1024; // default value
 	private int c = b - r; // default value = 526
 	private int d = 0; // default value
-
+    private long[] S;
+	private int hashbitlen;
+    
     @Override
     public void init(int hashBits) {
         // TODO Auto-generated method stub
+        this.hashbitlen = hashBits;
+    	this.S = new long[25];
         
     }
 
@@ -26,12 +34,20 @@ public class Keccak implements HashFunction {
         return null;
     }
     
-    private void pad(int M, int n){
-    	
+    private byte[] pad(byte[] M, int n){
+    	return null;
     }
     
-    private void enc(int x, int n){
+    private static byte[] enc(int x, int n){
     	
+    	BigInteger y = BigInteger.valueOf((int)x);
+    	BigInteger temp = BigInteger.ZERO;
+    	
+    	for (int i = 0; i < n; i++)
+    		if ( y.testBit(i) )
+    			temp = temp.setBit(n-i-1);
+
+    	return temp.toByteArray();
     }
 
 }
