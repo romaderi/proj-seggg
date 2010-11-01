@@ -11,14 +11,17 @@ public class SpongeDuplex implements Duplex {
     private int c; // capacity
     private int b; // state size
     private byte[] s; // the sponge state
+    private byte[] Z; // the Z output
     private TransformationF transf; // the transformation/permutation f 
+    private int hashBits;
     
     @Override
     public void init(int hashBits) {
         
-        // hashBits ?
         b = c + r;
         s = new byte[b]; // s = 0^b
+        Z = new byte[0];
+        this.hashBits = hashBits;
     }
 
     @Override
@@ -43,10 +46,22 @@ public class SpongeDuplex implements Duplex {
         P = ByteUtil.append(P, zeros, P.length, c);
         s = ByteUtil.xor(s, P, b); // s = s ⊕ (P ||0^b−r )
         s = transf.f(s); // s = f (s)
+        s = Arrays.copyOfRange(s, 0, hashBits); //  ⌊s⌋l
+
+        // acumula no buffer de saída
+        Z = ByteUtil.append(Z, s, Z.length, hashBits);
+
+        // retorna z
+        z = new byte[zLength];
+        int max = 0;
+        if (zLength < Z.length)
+            max = zLength;
+        else
+            max = Z.length;
+        for (int i=0; i<max; i++)
+            z[i] = Z[i];
         
-        // z
-        
-        return Arrays.copyOfRange(s, 0, zLength); //  ⌊s⌋l
+        return s;
     }
 
     /**
@@ -62,6 +77,4 @@ public class SpongeDuplex implements Duplex {
         pad[q/8] = (byte) (0x01 | pad[q/8]);
         return ByteUtil.append(M, pad, mLength, q/8);
     }
-
-
 }
