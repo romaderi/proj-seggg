@@ -5,12 +5,12 @@ public interface SpongeRandom {
     /**
     * Get the PRNG bit-rate r.
     */
-    void getBitRate();
+    int getBitRate();
     
     /**
     * Get the PRNG capacity c.
     */
-    void getCapacity();
+    int getCapacity();
     
     /**
     * Initialize the PRNG.
