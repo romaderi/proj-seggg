@@ -6,21 +6,27 @@ import pcs2055.math.ByteUtil;
 
 public class SpongeDuplex implements Duplex {
 
-    // c = b - r
-    private int r; // bitrate
-    private int c; // capacity
+    private int r; // bitrate (tamanho do estado que é xorado com a entrada)
+    private int c; // capacity // c = b - r (quanto maior c, maior a segurança)
     private int b; // state size
+    // obs: aqui r, c, b estão em bytes
     private byte[] s; // the sponge state
     private byte[] Z; // the Z output
     private TransformationF transf; // the transformation/permutation f 
-    private int hashBits;
+    private int hashBits; // = l: sponge returns the first l bits of the state at the output
     
     @Override
     public void init(int hashBits) {
         
+        r = 1024; // TODO: 1024 bytes ou bits?
+        c = 576;
         b = c + r;
         s = new byte[b]; // s = 0^b
         Z = new byte[0];
+        
+        // Via de regra, c = 2*hashBits 
+        // Só com os parâmetros default isso não ocorre.
+        // by @pbarreto
         this.hashBits = hashBits;
     }
 
@@ -39,42 +45,52 @@ public class SpongeDuplex implements Duplex {
     @Override
     public byte[] duplexing(byte[] sigma, int sigmaLength, byte[] z, int zLength) {
         
-        byte[] pad = this.pad101(sigma, sigmaLength);
-        byte[] P = ByteUtil.append(sigma, pad, sigmaLength, r); // P = σ||pad[r](|σ|)
+        // Z = D.duplexing(σ, l) with l ≤ r and Z ∈ Zl²
         
-        byte[] zeros = new byte[c];
-        P = ByteUtil.append(P, zeros, P.length, c);
+        if (sigmaLength > r)
+            return null; // TODO: seria melhor se fosse uma exception
+
+        // P = σ||pad[r](|σ|)
+        byte[] P = Arrays.copyOf(sigma, sigmaLength);
+        if (sigmaLength < r) {
+            byte[] pad = this.pad101(sigmaLength);
+            if (sigmaLength + pad.length > r)
+                return null; // TODO: seria melhor se fosse uma exception
+            P = ByteUtil.append(P, pad, sigmaLength, pad.length);
+        }
+
+
+        byte[] zeros = new byte[c]; // c = b - r
+        P = ByteUtil.append(P, zeros, P.length, c); // P.length < r (não devia ser igual a r?!)
         s = ByteUtil.xor(s, P, b); // s = s ⊕ (P ||0^b−r )
         s = transf.f(s); // s = f (s)
-        s = Arrays.copyOfRange(s, 0, hashBits); //  ⌊s⌋l
 
-        // acumula no buffer de saída
-        Z = ByteUtil.append(Z, s, Z.length, hashBits);
-
-        // retorna z
-        z = new byte[zLength];
-        int max = 0;
-        if (zLength < Z.length)
-            max = zLength;
-        else
-            max = Z.length;
-        for (int i=0; i<max; i++)
-            z[i] = Z[i];
+        if (zLength > r)
+            return null; // TODO: seria melhor se fosse uma exception
+        for (int i=0; i<zLength; i++) //  ⌊s⌋l;
+            z[i] = s[i];
         
-        return s;
+        if (z == null)
+            return new byte[zLength];
+        else
+            return z;
     }
 
     /**
-     * Minimal sponge padding
-     * @param M
-     * @return
+     * Minimal sponge padding (10*1)
+     * 
+     * @param mlength comprimento em bytes da mensagem do padding
+     * @return o fim do padding que deve ser concatenado com o resto da mensagem
      */
-    private byte[] pad101(byte[] M, int mLength) {
+    private byte[] pad101(int mLength) {
         
-        int q = (-mLength - 10) % r;
-        byte[] pad = new byte[q/8];
+        // TODO: rever
+        int q = r-mLength;
+//        int q = (-mLength - 10) % this.r; 
+        byte[] pad = new byte[q];
         pad[0] = (byte) 0x80;
-        pad[q/8] = (byte) (0x01 | pad[q/8]);
-        return ByteUtil.append(M, pad, mLength, q/8);
+        pad[q-1] = (byte) (0x01 | pad[q-1]);
+        
+        return pad;
     }
 }
