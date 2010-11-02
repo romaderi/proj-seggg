@@ -8,11 +8,18 @@ public class KeccakF {
     
     // colocar aqui constantes (segundo enunciado) que determinam número de rounds
 	
-	private static int b = 1600;
-	private static int l = 6;
-	private static int nt = 24;  // 12+2*l
+	//private static int b = 1600;
+	//private static int l = 6;
+	private static int nt = 24;  // 12+2*l, com l = 6
 	private static int indexRound;
-    
+	private static final int[] keccakRhoOffsets = {
+		 0,  1, 62, 28, 14,
+		36, 44,  6, 55, 20,
+		 3, 10, 43, 25, 39,
+		41, 45, 15, 21,  8,
+		18,  2, 61, 56, 14
+	};
+	
 	private static final long[] RC = {
 		0x0000000000000001L, 0x0000000000008082L,
 		0x800000000000808AL, 0x8000000080008000L,
@@ -28,13 +35,58 @@ public class KeccakF {
 		0x0000000080000001L, 0x8000000080008008L
 	};
 	
+
+	private static void KeccakInitializeRhoOffsets()
+	{
+	    /*//int x, y, t, newX, newY;
+
+	    keccakRhoOffsets = new int[25];
+	    keccakRhoOffsets[index(0,0)] = 0;
+	    keccakRhoOffsets[index(0,1)] = 36;
+	    keccakRhoOffsets[index(0,2)] = 3;
+	    keccakRhoOffsets[index(0,3)] = 41;
+	    keccakRhoOffsets[index(0,4)] = 18;
+	    keccakRhoOffsets[index(1,0)] = 1;
+	    keccakRhoOffsets[index(1,1)] = 44;
+	    keccakRhoOffsets[index(1,2)] = 10;
+	    keccakRhoOffsets[index(1,3)] = 45;
+	    keccakRhoOffsets[index(1,4)] = 2;
+	    keccakRhoOffsets[index(2,0)] = 62;
+	    keccakRhoOffsets[index(2,1)] = 6;
+	    keccakRhoOffsets[index(2,2)] = 43;
+	    keccakRhoOffsets[index(2,3)] = 15;
+	    keccakRhoOffsets[index(2,4)] = 61;
+	    keccakRhoOffsets[index(3,0)] = 28;
+	    keccakRhoOffsets[index(3,1)] = 55;
+	    keccakRhoOffsets[index(3,2)] = 25;
+	    keccakRhoOffsets[index(3,3)] = 21;
+	    keccakRhoOffsets[index(3,4)] = 56;
+	    keccakRhoOffsets[index(4,0)] = 27;
+	    keccakRhoOffsets[index(4,1)] = 20;
+	    keccakRhoOffsets[index(4,2)] = 39;
+	    keccakRhoOffsets[index(4,3)] = 8;
+	    keccakRhoOffsets[index(4,4)] = 14;
+	   
+	    /*x = 1;
+	    y = 0;
+	    for( t = 0 ; t < 24 ; t++ ) {
+	        keccakRhoOffsets[index(x,y)] = ((t+1)*(t+2)/2) % 64;
+	        newX = (0*x+1*y) % 5;
+	        newY = (2*x+3*y) % 5;
+	        x = newX;
+	        y = newY;
+	    }*/
+	}
 	
     public static long[] f(long[] aData) {
     	
+    	//KeccakInitializeRhoOffsets();
     	long[] data = new long[25];
-        //for ( indexRound = 0; indexRound < nt; indexRound++)
-        //	data = round(data);
-    	data = round(aData);
+        for ( indexRound = 0; indexRound < nt; indexRound++) {
+        	data = round(data);
+        	ByteUtil.printArray(data);
+        	System.out.println();
+        }
         return data;
     }
     
@@ -54,11 +106,9 @@ public class KeccakF {
     	long[] D = new long[5];
     	long[] ret = Arrays.copyOf(data, data.length);
     	
-    	for ( x = 0; x < 5; x++ ) {
-    		C[x] = data[index(x,0)];
-    		for ( y = 1; y < 5; y++ )
-    			C[x] = C[x] ^ data[index(x,y)];
-    	}
+    	for ( x = 0; x < 5; x++ )
+    		C[x] = data[index(x,0)] ^ data[index(x,1)] ^ data[index(x,2)] ^
+    		       data[index(x,3)] ^ data[index(x,4)];
     	  	
     	D[0] = C[4] ^ ROL64(C[1],1);
     	for ( x = 1; x < 5 ; x++ )
@@ -90,27 +140,14 @@ public class KeccakF {
         return ret;
     }
     
-    private static long[] iota(long[] data) {
+    private static long[] rho(long[] data) {
 
     	long[] ret = Arrays.copyOf(data, data.length);
     	
-   		ret[index(0,0)] = data[index(0,0)] ^ RC[indexRound];
-        return ret;
-    }
-    
-    private static long[] chi(long[] data) {
-        int x, y;
-        long[] C = new long[5];
-        long[] ret = Arrays.copyOf(data, data.length);
-
-        for( y = 0; y < 5; y++ ) { 
-            for( x = 0; x < 5; x++ )
-                C[x] = data[index(x,y)] ^ ((~data[index(x+1,y)])
-                		& data[index(x+2,y)]);
-            for( x = 0; x < 5; x++ )
-                data[index(x, y)] = C[x];
-        }
-        return data;
+    	for( int x = 0; x < 5; x++ )
+        	for( int y = 0; y < 5; y++ )
+        		ret[index(x,y)] = ROL64(ret[index(x,y)], keccakRhoOffsets[index(x,y)]);
+    	return ret;
     }
     
     private static long[] pi(long[] data) {
@@ -119,30 +156,38 @@ public class KeccakF {
         
         for( int x = 0; x < 5; x++ )
         	for( int y = 0; y < 5; y++ )
-        		ret[index(0*x+1*y, 2*x+3*y)] = data[index(x, y)];
+        		ret[index(y,2*x+3*y)] = data[index(x, y)];
         
         return ret;
     }
     
-    private static long[] rho(long[] data) {
+    private static long[] chi(long[] data) {
+        int x, y;
+        long[] ret = Arrays.copyOf(data, data.length);
+
+        for( y = 0; y < 5; y++ )
+            for( x = 0; x < 5; x++ )
+            	ret[index(x,y)] = ret[index(x,y)] ^ ((~ret[index(x+1,y)])
+                		& ret[index(x+2,y)]);
+
+        return ret;
+    }
+    
+    private static long[] iota(long[] data) {
 
     	long[] ret = Arrays.copyOf(data, data.length);
     	
-        //for( int x = 0; x < 5; x++ )
-        //	for( int y = 0; y < 5; y++ )
-        //		ret[index(x,y)] = ROL64(ret[index(x,y)], KeccakRhoOffsets[index(x,y)]);t;
-    	return ret;
+   		ret[0] = data[0] ^ RC[indexRound]; // index(0,0) = 0
+        return ret;
     }
-    
 
-    
     private static int index(int x, int y){
     	return (x%5)+5*(y%5);
     }
     
     private static long ROL64(long A, int offset){
     	if (offset != 0)
-    		return ((A << offset) | (A >> (64-offset)));
+    		return ((A << offset) | (A >>> (64-offset)));
     	return A;
     }
 
