@@ -13,7 +13,7 @@ import org.junit.Test;
  */
 public class KeccakTest {
     
-    private final String TEST_FILE1 = "test/Test.Vectors.256bit.Keccak.txt";
+    private final String TEST_FILE1 = "test/Test.Vectors.Default.Keccak.txt";
     
     private List<CaseTest> tests;
 
@@ -22,8 +22,9 @@ public class KeccakTest {
         
         TestReader reader = new TestReader(TEST_FILE1);
         this.tests = reader.parseTests();
-        for (CaseTest t: tests)
-            t.print();
+        for (CaseTest t: tests) {
+                t.print();
+        }
     }
 
     @Test

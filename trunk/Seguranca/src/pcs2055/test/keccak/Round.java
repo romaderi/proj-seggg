@@ -46,11 +46,11 @@ public class Round {
     }
 
     public void print() {
-        ByteUtil.printArray(teta, "theta= ");
-        ByteUtil.printArray(rho, "rho= ");
-        ByteUtil.printArray(pi, "pi= ");
-        ByteUtil.printArray(chi, "chi= ");
-        ByteUtil.printArray(iota, "iota= ");    
+        ByteUtil.printArray(ByteUtil.invertByteArray(teta), "theta= ");
+        ByteUtil.printArray(ByteUtil.invertByteArray(rho), "rho= ");
+        ByteUtil.printArray(ByteUtil.invertByteArray(pi), "pi= ");
+        ByteUtil.printArray(ByteUtil.invertByteArray(chi), "chi= ");
+        ByteUtil.printArray(ByteUtil.invertByteArray(iota), "iota= ");    
     }
     
     
