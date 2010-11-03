@@ -318,6 +318,28 @@ public class ByteUtil {
 		return buf;
 	}
     
+    public static byte invertByte (byte x){
+    	
+    	BigInteger y = BigInteger.valueOf(x);
+    	BigInteger temp = BigInteger.ZERO;
+    	
+    	for (int i = 0; i < 8; i++)
+    		if ( y.testBit(i) )
+    			temp = temp.setBit(8-i-1);
+
+    	return temp.byteValue();
+    }
+    
+    public static byte[] invertByteArray(byte[] x){
+    	
+    	byte[] tmp = new byte[x.length];
+    	
+    	for (int i = 0; i < x.length; i++){
+    		tmp[i] = invertByte(x[i]);
+    	}
+    	
+    	return tmp;
+    }
 
 
 }

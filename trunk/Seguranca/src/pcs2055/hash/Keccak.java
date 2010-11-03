@@ -61,7 +61,7 @@ public class Keccak implements HashFunction {
     
     private static byte[] enc(int x, int n){
     	
-    	BigInteger y = BigInteger.valueOf((int)x);
+    	BigInteger y = BigInteger.valueOf(x);
     	BigInteger temp = BigInteger.ZERO;
     	
     	for (int i = 0; i < n; i++)
