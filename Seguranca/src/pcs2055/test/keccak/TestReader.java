@@ -61,7 +61,7 @@ public class TestReader {
                     if (matcher.matches()) {
                         String s = matcher.group(1);
                         test = new CaseTest();
-                        test.setSigma0(ByteUtil.convertHexString(s));
+                        test.setSigma0(ByteUtil.invertByteArray(ByteUtil.convertHexString(s)));
                         state = SearchState.XOR1;
                     }
                     break;
@@ -74,7 +74,7 @@ public class TestReader {
                     matcher = pt.matcher(line);
                     if (matcher.matches()) {
                         String s = matcher.group(2);
-                        test.setXor1(ByteUtil.convertHexString(s));
+                        test.setXor1(ByteUtil.invertByteArray(ByteUtil.convertHexString(s)));
                         state = SearchState.ROUNDS1;
                         br.readLine(); // come linha em branco
                         br.readLine(); // come comentário /* Number of round:0 */
@@ -92,7 +92,7 @@ public class TestReader {
                     matcher = pt.matcher(br.readLine());
                     if (matcher.matches()) {
                         String s = matcher.group(1);
-                        test.setPermutation1(ByteUtil.convertHexString(s));
+                        test.setPermutation1(ByteUtil.invertByteArray(ByteUtil.convertHexString(s)));
                         state = SearchState.Z0;
                     }
                     break;
@@ -104,7 +104,7 @@ public class TestReader {
                     matcher = pt.matcher(line);
                     if (matcher.matches()) {
                         String s = matcher.group(2);
-                        test.setZ0(ByteUtil.convertHexString(s));
+                        test.setZ0(ByteUtil.invertByteArray(ByteUtil.convertHexString(s)));
                         state = SearchState.SIGMA1;
                     }                    
                     break;
@@ -116,7 +116,7 @@ public class TestReader {
                     matcher = pt.matcher(line);
                     if (matcher.matches()) {
                         String s = matcher.group(1);
-                        test.setSigma1(ByteUtil.convertHexString(s));
+                        test.setSigma1(ByteUtil.invertByteArray(ByteUtil.convertHexString(s)));
                         state = SearchState.XOR2;
                     }                    
                     break;
@@ -128,7 +128,7 @@ public class TestReader {
                     matcher = pt.matcher(line);
                     if (matcher.matches()) {
                         String s = matcher.group(2);
-                        test.setXor2(ByteUtil.convertHexString(s));
+                        test.setXor2(ByteUtil.invertByteArray(ByteUtil.convertHexString(s)));
                         state = SearchState.ROUNDS2;
                         br.readLine(); // come linha em branco
                         br.readLine(); // come comentário /* Number of round:0 */
@@ -147,7 +147,7 @@ public class TestReader {
                     matcher = pt.matcher(line);
                     if (matcher.matches()) {
                         String s = matcher.group(1);
-                        test.setPermutation2(ByteUtil.convertHexString(s));
+                        test.setPermutation2(ByteUtil.invertByteArray(ByteUtil.convertHexString(s)));
                         state = SearchState.Z1;
                     }
                     break;    
@@ -159,7 +159,7 @@ public class TestReader {
                     matcher = pt.matcher(line);
                     if (matcher.matches()) {
                         String s = matcher.group(2);
-                        test.setZ1(ByteUtil.convertHexString(s));
+                        test.setZ1(ByteUtil.invertByteArray(ByteUtil.convertHexString(s)));
                         state = SearchState.SIGMA0;
                         this.tests.add(test);
                     }                    
@@ -190,7 +190,7 @@ public class TestReader {
         Matcher matcher = pt.matcher(line);
         if (matcher.matches()) {
             String s = matcher.group(1);
-            return ByteUtil.convertHexString(s);
+            return ByteUtil.invertByteArray(ByteUtil.convertHexString(s));
         }
         else return null;
     }
