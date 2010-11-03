@@ -58,17 +58,10 @@ public class Keccak implements HashFunction {
     	
     	return ret;
     }
-    
-    private static byte[] enc(int x, int n){
-    	
-    	BigInteger y = BigInteger.valueOf(x);
-    	BigInteger temp = BigInteger.ZERO;
-    	
-    	for (int i = 0; i < n; i++)
-    		if ( y.testBit(i) )
-    			temp = temp.setBit(n-i-1);
 
-    	return temp.toByteArray();
+    private static byte enc(int x){
+    	
+    	return ByteUtil.invertByte((byte)x);
     }
 
 }

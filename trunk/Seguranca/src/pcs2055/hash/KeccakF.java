@@ -81,22 +81,46 @@ public class KeccakF {
     public static long[] f(long[] aData) {
     	
     	//KeccakInitializeRhoOffsets();
-    	long[] data = new long[25];
+    	long[] data = aData;
         for ( indexRound = 0; indexRound < nt; indexRound++) {
         	data = round(data);
-        	ByteUtil.printArray(data);
-        	System.out.println();
         }
         return data;
     }
     
     private static long[] round(long[] data) {
 
-        long[] aData = theta(data);
+    	System.out.print("Before theta : ");
+    	ByteUtil.printArray(data);
+    	System.out.println();
+    	
+    	long[] aData = theta(data);
+        
+    	System.out.print("Before rho : ");
+        ByteUtil.printArray(aData);
+    	System.out.println();
+    	
         aData = rho(aData);
+        
+        System.out.print("Before pi : ");
+        ByteUtil.printArray(aData);
+    	System.out.println();
+
         aData = pi(aData);
+        
+        System.out.print("Before chi : ");
+        ByteUtil.printArray(aData);
+    	System.out.println();
+    	
         aData = chi(aData);
-        return iota(aData);
+        
+        System.out.print("Before iota : ");
+        ByteUtil.printArray(aData);
+    	System.out.println();
+    	
+        aData = iota(aData);
+
+    	return aData;
     }
     
     private static long[] theta(long[] data) {
@@ -110,9 +134,9 @@ public class KeccakF {
     		C[x] = data[index(x,0)] ^ data[index(x,1)] ^ data[index(x,2)] ^
     		       data[index(x,3)] ^ data[index(x,4)];
     	  	
-    	D[0] = C[4] ^ ROL64(C[1],1);
+    	D[0] = C[4] ^ Long.rotateLeft(C[1],1);
     	for ( x = 1; x < 5 ; x++ )
-    		D[x] = C[(x-1)%5] ^ ROL64(C[(x+1)%5],1);
+    		D[x] = C[(x-1)%5] ^ Long.rotateLeft(C[(x+1)%5],1);
     	
     	for ( x = 0; x < 5; x++ )
     		for ( y = 0; y < 5; y++ )
@@ -146,7 +170,7 @@ public class KeccakF {
     	
     	for( int x = 0; x < 5; x++ )
         	for( int y = 0; y < 5; y++ )
-        		ret[index(x,y)] = ROL64(ret[index(x,y)], keccakRhoOffsets[index(x,y)]);
+        		ret[index(x,y)] = Long.rotateLeft(ret[index(x,y)], keccakRhoOffsets[index(x,y)]);
     	return ret;
     }
     
@@ -185,10 +209,9 @@ public class KeccakF {
     	return (x%5)+5*(y%5);
     }
     
-    private static long ROL64(long A, int offset){
-    	if (offset != 0)
-    		return ((A << offset) | (A >>> (64-offset)));
-    	return A;
-    }
+    //private static long ROL64(long A, int offset){
+    	  	
+    //	return Long.rotateLeft(A, offset);
+    //}
 
 }
