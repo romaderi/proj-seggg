@@ -27,6 +27,15 @@ public class ByteUtilTest {
         assertArrays(expected, value);
     }
     
+    @Test
+    public void testInvertByte() {
+        
+        assertEquals((byte) 0x80, ByteUtil.invertByte((byte) 0x01));
+        assertEquals((byte) 0x81, ByteUtil.invertByte((byte) 0x81));
+        assertEquals((byte) 1, ByteUtil.invertByte((byte) 0x80));
+        assertEquals((byte) 0x7A, ByteUtil.invertByte((byte) 0x5E));
+    }
+    
     private static void assertArrays(byte[] expected, byte[] value) {
         
         for (int i=0; i<expected.length; i++) {
