@@ -1,27 +1,36 @@
 package pcs2055.hash;
 
-import java.math.BigInteger;
 import java.util.Arrays;
 
 import pcs2055.math.ByteUtil;
+import pcs2055.sponge.Duplex;
+import pcs2055.sponge.TransformationF;
 
-public class Keccak implements HashFunction {
+public class Keccak implements HashFunction, Duplex {
 
-	private int b = 1600;
-	private int l = 6; // b = 25*(2^l)
-	private int r = 1024; // default value
-	private int c = b - r; // default value = 526
-	private int d = 0; // default value
+    private final int b = 1600/8; // state size, em bytes
+    private int r; // bitrate (tamanho do estado que é xorado com a entrada)
+    private int c; // capacity // c = b - r (quanto maior c, maior a segurança)
+    // obs: aqui r, c, b estão em bytes
+    private byte[] s; // the sponge state
+    private byte[] Z; // the Z output
+
+    private int l = 6; // b = 25*(2^l)
+    private int d = 0; // default value
     private long[] S;
-	private int hashbitlen;
     private long[] P;
 	
     @Override
     public void init(int hashBits) {
-        // TODO Auto-generated method stub
-        this.hashbitlen = hashBits;
-    	this.S = new long[25];
-        this.P = new long[25];
+        
+        // Via de regra, c = 2*hashBits 
+        // Só com os parâmetros default isso não ocorre.
+        // by @pbarreto
+
+        c = 2 * hashBits/8;
+        r = b - c; // TODO: 1024 bytes ou bits?
+        s = new byte[b]; // s = 0^b
+        Z = new byte[0];
     }
 
     @Override
@@ -64,4 +73,65 @@ public class Keccak implements HashFunction {
     	return ByteUtil.invertByte((byte)x);
     }
 
+    /*************/
+    /*  Duplex  */
+    /***********/
+    
+    @Override
+    public byte[] duplexing(byte[] sigma, int sigmaLength, byte[] z, int zLength) {
+
+        // Z = D.duplexing(σ, l) with l ≤ r and Z ∈ Zl²
+        
+        if (sigmaLength > r)
+            return null; // TODO: seria melhor se fosse uma exception
+
+        // P = σ||pad[r](|σ|)
+        byte[] P = Arrays.copyOf(sigma, sigmaLength);
+        if (sigmaLength < r) {
+            byte[] pad = this.pad101(sigmaLength);
+            if (sigmaLength + pad.length > r)
+                return null; // TODO: seria melhor se fosse uma exception
+            P = ByteUtil.append(P, pad, sigmaLength, pad.length);
+        }
+
+
+        byte[] zeros = new byte[c]; // c = b - r
+        P = ByteUtil.append(P, zeros, P.length, c); // P.length < r (não devia ser igual a r?!)
+        s = ByteUtil.xor(s, P, b); // s = s ⊕ (P ||0^b−r )
+        s = KeccakF.f(s); // s = f (s)
+
+        if (zLength > r)
+            return null; // TODO: seria melhor se fosse uma exception
+        if (z == null)
+            z = new byte[zLength];
+        for (int i=0; i<zLength; i++) //  ⌊s⌋l;
+            z[i] = s[i];
+        return z;
+    }
+
+    @Override
+    public int getBitRate() {
+        return r;
+    }
+
+    @Override
+    public int getCapacity() {
+        return c;
+    }
+
+    /**
+     * Minimal sponge padding (10*1)
+     * 
+     * @param mlength comprimento em bytes da mensagem do padding
+     * @return o fim do padding que deve ser concatenado com o resto da mensagem
+     */
+    private byte[] pad101(int mLength) {
+        
+        int q = r-mLength;
+        byte[] pad = new byte[q];
+        pad[0] = (byte) 0x80;
+        pad[q-1] = (byte) (0x01 | pad[q-1]);
+        
+        return pad;
+    }
 }

@@ -67,13 +67,11 @@ public class SpongeDuplex implements Duplex {
 
         if (zLength > r)
             return null; // TODO: seria melhor se fosse uma exception
+        if (z == null)
+            z = new byte[zLength];
         for (int i=0; i<zLength; i++) //  ⌊s⌋l;
             z[i] = s[i];
-        
-        if (z == null)
-            return new byte[zLength];
-        else
-            return z;
+        return z;
     }
 
     /**
