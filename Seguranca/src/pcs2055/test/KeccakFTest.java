@@ -16,11 +16,10 @@ public class KeccakFTest {
 		aa[0] = 0x7A;
 		int d = 0;
 		int r = 1024;
-		
 
 		long[] data = new long[25];
-    	data[0] = 0x7A01000000000000L;
-    	data[16] = 0x80L;
+    	data[0] = 0x5E80000000000000L;
+    	data[16] = 0x01L;
 		long[] a = KeccakF.f(data);
 		ByteUtil.printArray(a);
 		
