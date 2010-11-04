@@ -19,6 +19,8 @@ public class Keccak implements HashFunction, Duplex {
     private int d = 0; // default value
     private long[] S;
     private long[] P;
+    
+    KeccakF keccakF = new KeccakF();
 	
     @Override
     public void init(int hashBits) {
@@ -98,7 +100,7 @@ public class Keccak implements HashFunction, Duplex {
         byte[] zeros = new byte[c]; // c = b - r
         P = ByteUtil.append(P, zeros, P.length, c); // P.length < r (não devia ser igual a r?!)
         s = ByteUtil.xor(s, P, b); // s = s ⊕ (P ||0^b−r )
-        s = KeccakF.f(s); // s = f (s)
+        s = keccakF.f(s); // s = f (s)
 
         if (zLength > r)
             return null; // TODO: seria melhor se fosse uma exception

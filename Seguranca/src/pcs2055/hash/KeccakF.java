@@ -10,8 +10,8 @@ public class KeccakF {
 	
 	//private static int b = 1600;
 	//private static int l = 6;
-	private static int nt = 24;  // 12+2*l, com l = 6
-	private static int indexRound;
+	private int nt = 24;  // 12+2*l, com l = 6
+	private int indexRound = 0;
 	private static final int[] keccakRhoOffsets = {
 		 0,  1, 62, 28, 14,
 		36, 44,  6, 55, 20,
@@ -35,50 +35,8 @@ public class KeccakF {
 		0x0000000080000001L, 0x8000000080008008L
 	};
 	
-
-	private static void KeccakInitializeRhoOffsets()
-	{
-	    /*//int x, y, t, newX, newY;
-
-	    keccakRhoOffsets = new int[25];
-	    keccakRhoOffsets[index(0,0)] = 0;
-	    keccakRhoOffsets[index(0,1)] = 36;
-	    keccakRhoOffsets[index(0,2)] = 3;
-	    keccakRhoOffsets[index(0,3)] = 41;
-	    keccakRhoOffsets[index(0,4)] = 18;
-	    keccakRhoOffsets[index(1,0)] = 1;
-	    keccakRhoOffsets[index(1,1)] = 44;
-	    keccakRhoOffsets[index(1,2)] = 10;
-	    keccakRhoOffsets[index(1,3)] = 45;
-	    keccakRhoOffsets[index(1,4)] = 2;
-	    keccakRhoOffsets[index(2,0)] = 62;
-	    keccakRhoOffsets[index(2,1)] = 6;
-	    keccakRhoOffsets[index(2,2)] = 43;
-	    keccakRhoOffsets[index(2,3)] = 15;
-	    keccakRhoOffsets[index(2,4)] = 61;
-	    keccakRhoOffsets[index(3,0)] = 28;
-	    keccakRhoOffsets[index(3,1)] = 55;
-	    keccakRhoOffsets[index(3,2)] = 25;
-	    keccakRhoOffsets[index(3,3)] = 21;
-	    keccakRhoOffsets[index(3,4)] = 56;
-	    keccakRhoOffsets[index(4,0)] = 27;
-	    keccakRhoOffsets[index(4,1)] = 20;
-	    keccakRhoOffsets[index(4,2)] = 39;
-	    keccakRhoOffsets[index(4,3)] = 8;
-	    keccakRhoOffsets[index(4,4)] = 14;
-	   
-	    /*x = 1;
-	    y = 0;
-	    for( t = 0 ; t < 24 ; t++ ) {
-	        keccakRhoOffsets[index(x,y)] = ((t+1)*(t+2)/2) % 64;
-	        newX = (0*x+1*y) % 5;
-	        newY = (2*x+3*y) % 5;
-	        x = newX;
-	        y = newY;
-	    }*/
-	}
 	
-    public static byte[] f(byte[] inData) {
+    public byte[] f(byte[] inData) {
     	
     	//byte[] tmp = new byte[8];
     	long[] data = ByteUtil.byteArrayToLongArray(inData);
@@ -95,7 +53,7 @@ public class KeccakF {
         return ByteUtil.longArrayToByteArray(data);
     }
     
-    private static long[] round(long[] data) {
+    private long[] round(long[] data) {
 
     	System.out.print("Before theta : ");
     	//ByteUtil.printArray(ByteUtil.invertLongArray(data));
@@ -135,7 +93,7 @@ public class KeccakF {
     	return aData;
     }
     
-    private static long[] theta(long[] data) {
+    public long[] theta(long[] data) {
 
     	int x, y;
     	long[] C = new long[5];
@@ -167,7 +125,7 @@ public class KeccakF {
         return ret;
     }
     
-    public static long[] rho(long[] data) {
+    public long[] rho(long[] data) {
 
     	long[] ret = Arrays.copyOf(data, data.length);
     	
@@ -177,7 +135,7 @@ public class KeccakF {
     	return ret;
     }
     
-    private static long[] pi(long[] data) {
+    public long[] pi(long[] data) {
 
         long[] ret = new long[25];
         
@@ -188,7 +146,7 @@ public class KeccakF {
         return ret;
     }
     
-    private static long[] chi(long[] data) {
+    public long[] chi(long[] data) {
         int x, y;
         long[] ret = Arrays.copyOf(data, data.length);
 
@@ -200,7 +158,7 @@ public class KeccakF {
         return ret;
     }
     
-    private static long[] iota(long[] data) {
+    public long[] iota(long[] data) {
 
     	long[] ret = Arrays.copyOf(data, data.length);
     	
@@ -208,7 +166,7 @@ public class KeccakF {
         return ret;
     }
 
-    private static int index(int x, int y){
+    private int index(int x, int y){
     	return (x%5)+5*(y%5);
     }
     
