@@ -2,33 +2,33 @@ package pcs2055.sponge;
 
 import java.util.Arrays;
 
+import pcs2055.hash.Keccak;
 import pcs2055.math.ByteUtil;
 
 public class SpongePRNG implements SpongeRandom {
     
-    // c = b - r
-    private int r; // bitrate
-    private int c; // capacity
+    private int rho;
     private Duplex D; // esponja
     private byte[] Bin, Bout;
 
     @Override
     public void init(int hashBits) {
         
-        D = new SpongeDuplex();
+        D = new Keccak();
         D.init(hashBits);
+        rho = D.getBitRate();
         Bin = new byte[0];
         Bout = new byte[0];
     }
 
     @Override
     public int getBitRate() {
-        return r;
+        return D.getBitRate();
     }
 
     @Override
     public int getCapacity() {
-        return c;
+        return D.getCapacity();
     }
 
     @Override
@@ -37,17 +37,14 @@ public class SpongePRNG implements SpongeRandom {
         // P.feed(σ) with σ ∈ Z²∗
 
         byte[] M = ByteUtil.append(Bin, sigma, Bin.length, sigmaLength); // M = Bin ||σ
-        int rho = 8; // ρmax (pad, r) = max{x : x + |pad[r](x)| ≤ r}.
-        
-        // vamos supor rho múltipl de 8!
-        int w = 8*M.length / rho;
-        byte[] z = new byte[M.length];
-        byte[] Mi = null;
-        for (int i=0; i<w-1; i+=rho/8) {
-            Mi = Arrays.copyOfRange(M, i, i+rho/8);
-            D.duplexing(Mi, rho, z, M.length); // D.duplexing(Mi , 0)
+
+        int w = M.length / rho;
+        byte[] z = new byte[0];
+        for (int i=0; i<w-1; i++) { // varre todos Mi, exceto o último Mi 
+            byte[] Mi = Arrays.copyOfRange(M, i*rho, i*rho+rho);
+            D.duplexing(Mi, Mi.length, z, 0); // D.duplexing(Mi , 0)
         }
-        Bin = Mi; // Bin = Mw
+        Bin = Arrays.copyOfRange(M, M.length-1, M.length); // Bin = Mw
         Bout = new byte[0]; 
     }
 
@@ -58,15 +55,15 @@ public class SpongePRNG implements SpongeRandom {
         
         while (Bout.length < zLength) { // while | Bout | < l
             
-            byte[] bob = D.duplexing(Bin, Bin.length, z, zLength);
-            Bout = ByteUtil.append(Bout, bob, Bout.length, zLength); // Bout = Bout ||D.duplexing(Bin , ρ)
+            byte[] bob = D.duplexing(Bin, Bin.length, z, rho);
+            Bout = ByteUtil.append(Bout, bob, Bout.length, rho); // Bout = Bout ||D.duplexing(Bin , ρ)
             Bin = new byte[0]; 
         }
         
         z = Arrays.copyOfRange(Bout, 0, zLength); // Z = ⌊Bout ⌋l
         Bout = Arrays.copyOfRange(Bout, zLength, Bout.length); // Bout = last (|Bout | − l) bits of Bout
         
-        return null;
+        return z;
     }
 
     @Override
@@ -74,12 +71,11 @@ public class SpongePRNG implements SpongeRandom {
     
         // Z = P.forget()
 
-        int rho = 8; // ρmax (pad, r) = max{x : x + |pad[r](x)| ≤ r}
-        
-        byte[] z = D.duplexing(Bin, rho, null, 0); // Z  = D.duplexing(Bin , ρ)
+        byte[] z = D.duplexing(Bin, Bin.length, null, rho); // Z  = D.duplexing(Bin , ρ)
         Bin = new byte[0]; 
-        for (int i=1; i<=c/r; i++) { // for i = 1 to ⌊c/r⌋ do
-            z = D.duplexing(z, rho, null, 0); // Z = D.duplexing(Z, ρ)
+        int cr = D.getCapacity() / D.getBitRate();
+        for (int i=1; i<=cr; i++) { // for i = 1 to ⌊c/r⌋ do
+            z = D.duplexing(z, z.length, z, rho); // Z = D.duplexing(Z, ρ)
         }
         Bout = new byte[0]; 
     }
