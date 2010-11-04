@@ -290,31 +290,31 @@ public class ByteUtil {
         return bytes;
     }
     
-    public static byte[] longToByte (long val) {
+    public static byte[] longToByteArray (long val) {
 
     	byte[] buf = new byte[8];
-    	buf[0] = (byte)val;
-		buf[1] = (byte)(val >>> 8);
-		buf[2] = (byte)(val >>> 16);
-		buf[3] = (byte)(val >>> 24);
-		buf[4] = (byte)(val >>> 32);
-		buf[5] = (byte)(val >>> 40);
-		buf[6] = (byte)(val >>> 48);
-		buf[7] = (byte)(val >>> 56);
+    	buf[0] = (byte)(val & 0xFF);
+		buf[1] = (byte)((val >> 8) & 0xFF);
+		buf[2] = (byte)((val >> 16) & 0xFF);
+		buf[3] = (byte)((val >> 24) & 0xFF);
+		buf[4] = (byte)((val >> 32) & 0xFF);
+		buf[5] = (byte)((val >> 40) & 0xFF);
+		buf[6] = (byte)((val >> 48) & 0xFF);
+		buf[7] = (byte)((val >> 56) & 0xFF);
 		return buf;
 	}
     
-    public static long byteToLong (byte[] val) {
+    public static long byteArrayToLong (byte[] val) {
 		
-    	long buf;
-    	buf = val[0] |
-    		  val[1] << 8 |
-    		  val[2] << 16 |
-    		  val[3] << 24 |
-    		  val[4] << 32 |
-    		  val[5] << 40 |
-    		  val[6] << 48 |
-    		  val[7] << 56;
+    	long buf = 0x0L;
+    	buf = (((long) val[0]) & 0xFF) |
+    		  (((long) val[1]) & 0xFF) << 8 |
+    		  (((long) val[2]) & 0xFF) << 16 |
+    		  (((long) val[3]) & 0xFF) << 24 |
+    		  (((long) val[4]) & 0xFF) << 32 |
+    		  (((long) val[5]) & 0xFF) << 40 |
+    		  (((long) val[6]) & 0xFF) << 48 |
+    		  (((long) val[7]) & 0xFF) << 56;
 		return buf;
 	}
     
@@ -340,6 +340,48 @@ public class ByteUtil {
     	
     	return tmp;
     }
+    
+    public static long[] invertLongArray (long[] x){
+    	
+    	byte[] tmp = new byte[8];
+    	long[] ret = Arrays.copyOf(x, x.length);
+    	
+    	for (int i = 0; i < x.length; i++){
+    		tmp = longToByteArray(x[i]);
+    		tmp = invertByteArray(tmp);
+    		ret[i] = byteArrayToLong(tmp);
+    	}
+    	return ret;
+    }
 
+    public static long[] byteArrayToLongArray (byte[] x){
+    	
+    	long[] ret = new long[x.length/8];
+    	byte[] tmp = new byte[8];
+    	
+    	for (int i = 0; i < x.length/8; i++) {
+    	    for (int j = 0; j < 8; j++)
+    		    tmp[j] = x[8*i + j];
+    	    ret[i] = ByteUtil.byteArrayToLong(tmp);
+    	}
+    	
+    	return ret;
+    }
+    
+    public static byte[] longArrayToByteArray (long[] x){
+    	
+    	byte[] tmp;
+    	byte[] y = new byte[0];
+    	byte[] tmp2 = new byte[8];
+    	
+    	for (int i = 0; i < x.length; i++){
+    		tmp = Arrays.copyOf(y, y.length);
+    		tmp2 = ByteUtil.longToByteArray(x[i]);
+    		y = new byte[y.length + 8];
+    		y = ByteUtil.append(tmp, tmp2, tmp.length, tmp2.length)	;	
+    	}
+    	
+    	return y;
+    }
 
 }
