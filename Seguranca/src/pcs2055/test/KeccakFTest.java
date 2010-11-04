@@ -17,12 +17,22 @@ public class KeccakFTest {
 		int d = 0;
 		int r = 1024;
 
-		long[] data = new long[25];
-    	data[0] = 0x5E80000000000000L;
-    	data[16] = 0x01L;
-		long[] a = KeccakF.f(data);
-		ByteUtil.printArray(a);
+		long[] data = new long[25];/*
+    	data[0] = 0x7A01000000000000L;
+    	data[1] = 0x7A01000000000080L;
+    	data[4] = 0xF502000000000000L;
+    	data[5] = 0x7A01000000000080L;
+    	data[9] = 0xF502000000000000L;
+    	data[11] = 0x7A01000000000080L;
+    	data[14] = 0xF502000000000000L;
+    	data[16] = 0x7A01000000000080L;
+    	data[19] = 0xF502000000000000L;
+    	data[21] = 0x7A01000000000080L;
+    	data[24] = 0xF502000000000000L;*/
 		
+    	byte[] a = KeccakF.f(ByteUtil.longArrayToByteArray(data));
+		data = ByteUtil.byteArrayToLongArray(a);
+		ByteUtil.printArray(ByteUtil.invertLongArray(data));
 	}
 
 }
