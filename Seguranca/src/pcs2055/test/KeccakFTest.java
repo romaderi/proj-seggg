@@ -17,11 +17,11 @@ public class KeccakFTest {
 		int d = 0;
 		int r = 1024;
 
-		long[] data = new long[25];/*
+		long[] data = new long[25];
     	data[0] = 0x7A01000000000000L;
     	data[1] = 0x7A01000000000080L;
     	data[4] = 0xF502000000000000L;
-    	data[5] = 0x7A01000000000080L;
+    	/*data[5] = 0x7A01000000000080L;
     	data[9] = 0xF502000000000000L;
     	data[11] = 0x7A01000000000080L;
     	data[14] = 0xF502000000000000L;
@@ -29,10 +29,19 @@ public class KeccakFTest {
     	data[19] = 0xF502000000000000L;
     	data[21] = 0x7A01000000000080L;
     	data[24] = 0xF502000000000000L;*/
-		
-    	byte[] a = KeccakF.f(ByteUtil.longArrayToByteArray(data));
-		data = ByteUtil.byteArrayToLongArray(a);
-		ByteUtil.printArray(ByteUtil.invertLongArray(data));
+    	
+    	ByteUtil.printArray(data);
+    	System.out.println();
+    	ByteUtil.printArray(ByteUtil.longArrayToByteArray(data));
+    	System.out.println();
+    	ByteUtil.printArray(ByteUtil.byteArrayToLongArray(ByteUtil.longArrayToByteArray(data)));
+    	
+    	//TODO: mais testes do byte->long e vice-versa
+    	
+    	
+    	//byte[] a = KeccakF.f(ByteUtil.longArrayToByteArray(data));
+		//data = ByteUtil.byteArrayToLongArray(a);
+		//ByteUtil.printArray(ByteUtil.invertLongArray(data));
 	}
 
 }
