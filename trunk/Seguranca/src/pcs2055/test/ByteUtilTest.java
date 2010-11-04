@@ -14,17 +14,17 @@ public class ByteUtilTest {
         // 1
         byte[] expected = new byte[] {0x1A, 0x0C, 0x34};
         byte[] value = ByteUtil.convertHexString("1A0C34");
-        assertArrays(expected, value);
+        assertArrayEquals(expected, value);
 
         // 2
         expected = new byte[] {0x0A, 0x0C, 0x34};
         value = ByteUtil.convertHexString("A0C34");
-        assertArrays(expected, value);
+        assertArrayEquals(expected, value);
 
         // 3
         expected = new byte[] {0x7A, 1, 0, 0, (byte) 0x80};
         value = ByteUtil.convertHexString("7A01000080");
-        assertArrays(expected, value);
+        assertArrayEquals(expected, value);
     }
     
     @Test
@@ -35,12 +35,4 @@ public class ByteUtilTest {
         assertEquals((byte) 1, ByteUtil.invertByte((byte) 0x80));
         assertEquals((byte) 0x7A, ByteUtil.invertByte((byte) 0x5E));
     }
-    
-    private static void assertArrays(byte[] expected, byte[] value) {
-        
-        for (int i=0; i<expected.length; i++) {
-            assertEquals(expected[i], value[i]);
-        }
-    }
-    
 }
