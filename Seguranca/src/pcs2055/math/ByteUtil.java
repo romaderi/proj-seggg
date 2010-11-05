@@ -383,5 +383,13 @@ public class ByteUtil {
     	
     	return y;
     }
-
+    
+    public static void printState (long[] s){
+    	
+    	for (int i = 0; i < 5; i++){
+    		for (int j = 0; j < 5; j++)
+    			System.out.printf("%x ", s[i*5+j]);
+    		System.out.println();
+    	}
+    }
 }

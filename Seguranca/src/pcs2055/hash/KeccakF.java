@@ -13,7 +13,7 @@ public class KeccakF {
 	private int nt = 24;  // 12+2*l, com l = 6
 	private int indexRound = 0;
 	private static final int[] keccakRhoOffsets = {
-		 0,  1, 62, 28, 14,
+		 0,  1, 62, 28, 27,
 		36, 44,  6, 55, 20,
 		 3, 10, 43, 25, 39,
 		41, 45, 15, 21,  8,
@@ -55,41 +55,45 @@ public class KeccakF {
     
     private long[] round(long[] data) {
 
-    	System.out.print("Before theta : ");
-    	//ByteUtil.printArray(ByteUtil.invertLongArray(data));
-    	ByteUtil.printArray(data);
-    	System.out.println();
+    	///System.out.println("Before theta : ");
+    	//ByteUtil.printState(data);
+    	//System.out.println();
     	
     	long[] aData = theta(data);
         
-    	System.out.print("Before rho : ");
-        //ByteUtil.printArray(ByteUtil.invertLongArray(aData));
-    	ByteUtil.printArray(data);
-    	System.out.println();
+    	//System.out.println("Before rho : ");
+    	//System.out.println("After theta : ");
+    	//ByteUtil.printState(aData);
+    	//System.out.println();
     	
         aData = rho(aData);
         
-        System.out.print("Before pi : ");
-        //ByteUtil.printArray(ByteUtil.invertLongArray(aData));
-        ByteUtil.printArray(data);
-    	System.out.println();
+        //System.out.println("Before pi : ");
+        //System.out.println("After rho : ");
+        //ByteUtil.printState(aData);
+    	//System.out.println();
 
         aData = pi(aData);
         
-        System.out.print("Before chi : ");
-        //ByteUtil.printArray(ByteUtil.invertLongArray(aData));
-        ByteUtil.printArray(data);
-    	System.out.println();
+        //System.out.println("Before chi : ");
+        //System.out.println("After pi : ");
+        //ByteUtil.printState(aData);
+    	//System.out.println();
     	
         aData = chi(aData);
         
-        System.out.print("Before iota : ");
-        //ByteUtil.printArray(ByteUtil.invertLongArray(aData));
-        ByteUtil.printArray(data);
-    	System.out.println();
+        //System.out.println("Before iota : ");
+        //System.out.println("After chi : ");
+        //ByteUtil.printState(aData);
+    	//System.out.println();
     	
         aData = iota(aData);
 
+        //System.out.println("After iota : ");
+        ///ByteUtil.printState(aData);
+    	//System.out.println();
+    	
+        
     	return aData;
     }
     
@@ -104,12 +108,20 @@ public class KeccakF {
     		C[x] = data[index(x,0)] ^ data[index(x,1)] ^ data[index(x,2)] ^
     		       data[index(x,3)] ^ data[index(x,4)];
 
+    	//ByteUtil.printArray(C);
+    	
     	for ( x = 0; x < 5 ; x++ )
     		D[x] = C[(5+x-1)%5] ^ Long.rotateLeft(C[(x+1)%5],1);
+    	
+    	//ByteUtil.printArray(D);
 
     	for ( x = 0; x < 5; x++ )
     		for ( y = 0; y < 5; y++ )
     			ret[index(x,y)] = data[index(x,y)] ^ D[x];
+    	
+    	//System.out.print("\ntest : ");
+    	//ByteUtil.printArray(ret);
+    	
     	
       /*  for( x = 0; x < 5; x++ ) {
             C[x] = 0;
@@ -152,8 +164,8 @@ public class KeccakF {
 
         for( y = 0; y < 5; y++ )
             for( x = 0; x < 5; x++ )
-            	ret[index(x,y)] = ret[index(x,y)] ^ ((~ret[index(x+1,y)])
-                		& ret[index(x+2,y)]);
+            	ret[index(x,y)] = data[index(x,y)] ^ ((~data[index(x+1,y)])
+                		& data[index(x+2,y)]);
 
         return ret;
     }
