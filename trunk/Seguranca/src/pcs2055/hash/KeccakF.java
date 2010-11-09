@@ -20,21 +20,27 @@ public class KeccakF {
 		18,  2, 61, 56, 14
 	};
 	
-	private static final long[] RC = {
-		0x0000000000000001L, 0x0000000000008082L,
-		0x800000000000808AL, 0x8000000080008000L,
-		0x000000000000808BL, 0x0000000080000001L,
-		0x8000000080008081L, 0x8000000000008009L,
-		0x000000000000008AL, 0x0000000000000088L,
-		0x0000000080008009L, 0x000000008000000AL,
-		0x000000008000808BL, 0x800000000000008BL,
-		0x8000000000008089L, 0x8000000000008003L,
-		0x8000000000008002L, 0x8000000000000080L,
-		0x000000000000800AL, 0x800000008000000AL,
-		0x8000000080008081L, 0x8000000000008080L,
-		0x0000000080000001L, 0x8000000080008008L
-	};
+	private static long[] RC;
 	
+	// bloco de inicialização estático
+	static {
+
+	    RC = new long[]{
+                0x0000000000000001L, 0x0000000000008082L,
+                0x800000000000808AL, 0x8000000080008000L,
+                0x000000000000808BL, 0x0000000080000001L,
+                0x8000000080008081L, 0x8000000000008009L,
+                0x000000000000008AL, 0x0000000000000088L,
+                0x0000000080008009L, 0x000000008000000AL,
+                0x000000008000808BL, 0x800000000000008BL,
+                0x8000000000008089L, 0x8000000000008003L,
+                0x8000000000008002L, 0x8000000000000080L,
+                0x000000000000800AL, 0x800000008000000AL,
+                0x8000000080008081L, 0x8000000000008080L,
+                0x0000000080000001L, 0x8000000080008008L
+            };
+	    RC = ByteUtil.invertLongArray(RC); // NiiiiiiiiiiiST 
+	}
 	
     public byte[] f(byte[] inData) {
     	
@@ -55,44 +61,11 @@ public class KeccakF {
     
     private long[] round(long[] data) {
 
-    	///System.out.println("Before theta : ");
-    	//ByteUtil.printState(data);
-    	//System.out.println();
-    	
     	long[] aData = theta(data);
-        
-    	//System.out.println("Before rho : ");
-    	//System.out.println("After theta : ");
-    	//ByteUtil.printState(aData);
-    	//System.out.println();
-    	
         aData = rho(aData);
-        
-        //System.out.println("Before pi : ");
-        //System.out.println("After rho : ");
-        //ByteUtil.printState(aData);
-    	//System.out.println();
-
         aData = pi(aData);
-        
-        //System.out.println("Before chi : ");
-        //System.out.println("After pi : ");
-        //ByteUtil.printState(aData);
-    	//System.out.println();
-    	
         aData = chi(aData);
-        
-        //System.out.println("Before iota : ");
-        //System.out.println("After chi : ");
-        //ByteUtil.printState(aData);
-    	//System.out.println();
-    	
         aData = iota(aData);
-
-        //System.out.println("After iota : ");
-        ///ByteUtil.printState(aData);
-    	//System.out.println();
-    	
         
     	return aData;
     }
@@ -137,7 +110,16 @@ public class KeccakF {
         return ret;
     }
     
-    public long[] rho(long[] data) {
+    public long[] rhopi(long[] data) {
+        
+        long[] ret = new long[data.length];
+        for (int x=0; x<5; x++)
+            for (int y=0; y<5; y++)
+                ret[index(y,2*x+3*y)] = Long.rotateLeft(data[index(x,y)], keccakRhoOffsets[index(x,y)]);
+        return ret;
+    }
+    
+    public long[] rhoOld(long[] data) {
 
     	long[] ret = Arrays.copyOf(data, data.length);
     	
@@ -145,6 +127,23 @@ public class KeccakF {
         	for( int y = 0; y < 5; y++ )
         		ret[index(x,y)] = Long.rotateLeft(ret[index(x,y)], keccakRhoOffsets[index(x,y)]);
     	return ret;
+    }
+    
+    public long[] rho(long[] data) {
+        
+        long[] ret = new long[data.length];
+        
+        ret[index(0,0)] = data[index(0,0)];
+        int x = 1;
+        int y = 0;
+        for (int t=0; t<24; t++) {
+            ret[index(x,y)] = Long.rotateLeft(data[index(x,y)], (t+1)*(t+2)/2);
+            int temp = x;
+            x = y;
+            y = (2*temp+3*y)%5;
+        }
+        
+        return ret;
     }
     
     public long[] pi(long[] data) {
@@ -178,13 +177,15 @@ public class KeccakF {
         return ret;
     }
 
+    public long[] iota(long[] data, int indexRound) {
+
+        long[] ret = Arrays.copyOf(data, data.length);
+        
+                ret[0] = data[0] ^ RC[indexRound]; // index(0,0) = 0
+        return ret;
+    }
+
     private int index(int x, int y){
     	return (x%5)+5*(y%5);
-    }
-    
-    //private static long ROL64(long A, int offset){
-    	  	
-    //	return Long.rotateLeft(A, offset);
-    //}
-
+    }    
 }

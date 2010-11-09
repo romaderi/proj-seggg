@@ -74,6 +74,16 @@ public class ByteUtil {
         return c;
     }
 
+    public static long[] append(long[] a, long[] b, int lenA, int lenB) {
+        
+        long[] c = new long[lenA + lenB];
+        for (int i=0; i<lenA; i++)
+            c[i] = a[i];
+        for (int i=0; i<lenB; i++)
+            c[i+lenA] = b[i];        
+        return c;
+    }
+
     /**
      * multiplicação de matrizes 3xn
      * @param a matriz 3xn
