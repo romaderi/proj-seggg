@@ -378,6 +378,14 @@ public class ByteUtil {
     	return ret;
     }
     
+    public static long[] reverseBytesInLongArray (long[] x){
+    	
+    	long[] ret = new long[x.length];
+    	for (int i = 0; i < x.length; i++)
+    		ret[i] = Long.reverseBytes(x[i]);
+    	return ret;
+    }
+    
     public static byte[] longArrayToByteArray (long[] x){
     	
     	byte[] tmp;
@@ -392,6 +400,28 @@ public class ByteUtil {
     	}
     	
     	return y;
+    }
+    
+    
+    
+    /*
+     * Inverte os bytes dentro de uma array (nao os bits)
+     */
+    public static long[] invertBytesInLongArray (long[] x){
+    	
+    	byte[] tmp = new byte[8];
+    	byte[] tmp2 = new byte[8];
+    	long[] ret = new long[x.length];
+    	
+    	for (int i = 0; i < x.length; i++){
+    		tmp = ByteUtil.longToByteArray(x[i]);
+    		for (int j = 0; j < 8; j++){
+    			tmp2[j] = tmp[7-j]; 
+    		}
+    		ret[i] = ByteUtil.byteArrayToLong(tmp2);
+    	}
+    	return ret;
+    	
     }
     
     public static void printState (long[] s){
