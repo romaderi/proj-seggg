@@ -89,20 +89,20 @@ public class CaseTest {
     
     public void print() {
         
-        ByteUtil.printArray(ByteUtil.invertByteArray(sigma0), "sigma0= ");
-        ByteUtil.printArray(ByteUtil.invertByteArray(xor1), "after xor1= ");
+        ByteUtil.printArray(ByteUtil.reverseBytesInByteArray(sigma0), "sigma0= ");
+        ByteUtil.printArray(ByteUtil.reverseBytesInByteArray(xor1), "after xor1= ");
         for (Round r: rounds1) {
             r.print();
         }
-        ByteUtil.printArray(ByteUtil.invertByteArray(permutation1), "after permutation1= ");
-        ByteUtil.printArray(ByteUtil.invertByteArray(z0), "z0= ");
-        ByteUtil.printArray(ByteUtil.invertByteArray(sigma1), "sigma1= ");
-        ByteUtil.printArray(ByteUtil.invertByteArray(xor2), "after xor2= ");
+        ByteUtil.printArray(ByteUtil.reverseBytesInByteArray(permutation1), "after permutation1= ");
+        ByteUtil.printArray(ByteUtil.reverseBytesInByteArray(z0), "z0= ");
+        ByteUtil.printArray(ByteUtil.reverseBytesInByteArray(sigma1), "sigma1= ");
+        ByteUtil.printArray(ByteUtil.reverseBytesInByteArray(xor2), "after xor2= ");
         for (Round r: rounds2) {
             r.print();
         }
-        ByteUtil.printArray(ByteUtil.invertByteArray(permutation2), "after permutation2= ");
-        ByteUtil.printArray(ByteUtil.invertByteArray(z1), "z1= ");        
+        ByteUtil.printArray(ByteUtil.reverseBytesInByteArray(permutation2), "after permutation2= ");
+        ByteUtil.printArray(ByteUtil.reverseBytesInByteArray(z1), "z1= ");        
     }
     
 }

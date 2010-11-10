@@ -80,6 +80,9 @@ public class KeccakTest {
         // 1
         byte[] in = tests.get(0).getRounds1().get(0).beforeRho();
         byte[] out = tests.get(0).getRounds1().get(0).beforePi();
+        
+        tests.get(0).getRounds1().get(0).print();
+        
         assertArrayEquals(ByteUtil.byteArrayToLongArray(out), f.rho(ByteUtil.byteArrayToLongArray(in)));
     }
 
