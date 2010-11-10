@@ -11,14 +11,11 @@ public class Keccak implements HashFunction, Duplex {
     private final int b = 1600/8; // state size, em bytes
     private int r; // bitrate (tamanho do estado que é xorado com a entrada)
     private int c; // capacity // c = b - r (quanto maior c, maior a segurança)
+    private int d;
     // obs: aqui r, c, b estão em bytes
     private byte[] s; // the sponge state
-    private byte[] Z; // the Z output
-
-    private int l = 6; // b = 25*(2^l)
-    private int d = 0; // default value
-    private long[] S;
-    private long[] P;
+    private byte[] Z; // the Z output   
+    private byte[] buffer;
     
     KeccakF keccakF = new KeccakF();
 	
@@ -29,31 +26,57 @@ public class Keccak implements HashFunction, Duplex {
         // Só com os parâmetros default isso não ocorre.
         // by @pbarreto
 
-        c = 2 * hashBits/8;
-        r = b - c; // TODO: 1024 bytes ou bits?
+    	if ( hashBits == 0){
+    		c = 576;
+    		r = 1024;
+    		d = 0;
+    	} else {	
+	        c = 2 * hashBits/8;
+	        r = b - c;
+    	}
         s = new byte[b]; // s = 0^b
         Z = new byte[0];
+        buffer = new byte[0];
     }
 
     @Override
     public void update(byte[] aData, int aLength) {
-        // TODO Auto-generated method stub
-    	
-    	//if ( aLength != )
-    	//byte[] tmpP = new byte[];
-    	
-    	
         
+    	buffer = ByteUtil.append(buffer, aData, buffer.length, aLength);
+    	byte[] pi = new byte[this.r];
+    	byte[] sr = new byte[this.r];
+    	
+    	if ( buffer.length < this.r)
+    		return;
+    	
+    	while ( buffer.length >= this.r ){
+    		pi = Arrays.copyOf(buffer, this.r);
+    		this.duplexing(pi, this.r, sr, this.r);
+    		Z = ByteUtil.append(Z, sr, Z.length, sr.length);
+    		buffer = Arrays.copyOfRange(buffer, this.r, buffer.length);
+    		this.duplexing(new byte[this.r], r, null, 0);
+    	}
+
     }
     
     @Override
     public byte[] getHash(byte[] val) {
-        // TODO Auto-generated method stub
+        
+    	byte[] sr = new byte[8];
     	
-        return null;
+    	// pad(M,8)||enc(d)||enc(r/8)
+        byte[] app = new byte[]{(byte)0x01, this.enc(this.d), this.enc(this.r)};
+    	ByteUtil.append(buffer, app, buffer.length, app.length);
+    	// pad(M,r)
+    	buffer = this.pad(buffer, this.r);
+    	this.duplexing(buffer, this.r, sr, this.r);
+		Z = ByteUtil.append(Z, sr, Z.length, sr.length);
+		buffer = new byte[0];
+    	
+        return Z;
     }
     
-    private static byte[] pad(byte[] M, int n){
+    private byte[] pad(byte[] M, int n){
     	
     	byte[] ret = new byte[M.length + 1];
     	byte[] bit1 = new byte[]{0x01};
@@ -70,8 +93,7 @@ public class Keccak implements HashFunction, Duplex {
     	return ret;
     }
 
-    private static byte enc(int x){
-    	
+    private byte enc(int x){
     	return ByteUtil.invertByte((byte)x);
     }
 

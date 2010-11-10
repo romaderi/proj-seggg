@@ -120,15 +120,6 @@ public class KeccakTest {
     }
 
     @Test
-    public void testRhoPi() {
-        
-        // 1
-        byte[] in = tests.get(0).getRounds1().get(0).beforeRho();
-        byte[] out = tests.get(0).getRounds1().get(0).beforeChi();
-        assertArrayEquals(ByteUtil.byteArrayToLongArray(out), f.rhopi(ByteUtil.byteArrayToLongArray(in)));
-    }
-
-    @Test
     public void testChi() {
         
         // 1

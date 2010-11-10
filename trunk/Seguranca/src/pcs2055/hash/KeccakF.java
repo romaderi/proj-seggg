@@ -38,39 +38,27 @@ public class KeccakF {
 	
     public byte[] f(byte[] inData) {
     	
-    	//byte[] tmp = new byte[8];
     	long[] data = ByteUtil.byteArrayToLongArray(inData);
-    	//byte[] ret = new byte[200];
     	
-    	//for (int i = 0; i < 25; i++) {
-    	//    for (int j = 0; j < 8; j++)
-    	//	    tmp[j] = inData[8*i + j];
-    	//	data[i] = ByteUtil.byteToLong(tmp);
-    	//}
-        for ( indexRound = 0; indexRound < nt; indexRound++)
+    	for (int i = 0; i < 25; i++)
+    		data[i] = Long.reverseBytes(data[i]);
+    	
+    	for ( indexRound = 0; indexRound < nt; indexRound++)
         	data = round(data);
-        
+    	
+    	for (int i = 0; i < 25; i++)
+    		data[i] = Long.reverseBytes(data[i]);
+    	
         return ByteUtil.longArrayToByteArray(data);
     }
     
     private long[] round(long[] data) {
 
-//    	System.out.println("before theta:");
-//    	ByteUtil.printArray(ByteUtil.reverseBytesInLongArray(data));
     	long[] aData = theta(data);
-//    	System.out.println("before rho:");
-//    	ByteUtil.printArray(ByteUtil.reverseBytesInLongArray(aData));
-//    	System.out.println();
     	aData = rho(aData);
         aData = pi(aData);
         aData = chi(aData);
-//        System.out.println("before iota:");
-//        ByteUtil.printArray(ByteUtil.reverseBytesInLongArray(aData));
-//        System.out.println();
         aData = iota(aData);
-//        System.out.println("before iota:");
-//        ByteUtil.printArray(ByteUtil.reverseBytesInLongArray(aData));
-//        System.out.println();
         
     	return aData;
     }
@@ -86,54 +74,16 @@ public class KeccakF {
     		C[x] = data[index(x,0)] ^ data[index(x,1)] ^ data[index(x,2)] ^
     		       data[index(x,3)] ^ data[index(x,4)];
 
-    	//ByteUtil.printArray(C);
-    	
     	for ( x = 0; x < 5 ; x++ )
     		D[x] = C[(5+x-1)%5] ^ Long.rotateLeft(C[(x+1)%5],1);
     	
-    	//ByteUtil.printArray(D);
-
     	for ( x = 0; x < 5; x++ )
     		for ( y = 0; y < 5; y++ )
     			ret[index(x,y)] = data[index(x,y)] ^ D[x];
     	
-    	//System.out.print("\ntest : ");
-    	//ByteUtil.printArray(ret);
-    	
-    	
-      /*  for( x = 0; x < 5; x++ ) {
-            C[x] = 0;
-            for( y = 0; y < 5; y++ ) 
-                C[x] ^= ret[index(x, y)];
-            D[x] = Long.rotateLeft(C[x], 1);
-        }
-        for( x = 0; x < 5; x++ )
-            for( y = 0; y < 5; y++ ) {
-            	ret[index(x,y)] ^= D[(x+1)%5] ^ C[(x+4)%5];
-            }
-        */
         return ret;
     }
-    
-    public long[] rhopi(long[] data) {
-        
-        long[] ret = new long[data.length];
-        for (int x=0; x<5; x++)
-            for (int y=0; y<5; y++)
-                ret[index(y,2*x+3*y)] = Long.rotateLeft(data[index(x,y)], keccakRhoOffsets[index(x,y)]);
-        return ret;
-    }
-    
-    public long[] rhoOld(long[] data) {
-
-    	long[] ret = Arrays.copyOf(data, data.length);
-    	
-    	for( int x = 0; x < 5; x++ )
-        	for( int y = 0; y < 5; y++ )
-        		ret[index(x,y)] = Long.rotateLeft(ret[index(x,y)], keccakRhoOffsets[index(x,y)]);
-    	return ret;
-    }
-    
+      
     public long[] rho(long[] data) {
         
         long[] ret = new long[data.length];
