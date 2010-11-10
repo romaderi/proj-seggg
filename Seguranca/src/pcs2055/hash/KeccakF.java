@@ -20,27 +20,21 @@ public class KeccakF {
 		18,  2, 61, 56, 14
 	};
 	
-	private static long[] RC;
-	
-	// bloco de inicialização estático
-	static {
+	private static final long[] RC ={
+        0x0000000000000001L, 0x0000000000008082L,
+        0x800000000000808AL, 0x8000000080008000L,
+        0x000000000000808BL, 0x0000000080000001L,
+        0x8000000080008081L, 0x8000000000008009L,
+        0x000000000000008AL, 0x0000000000000088L,
+        0x0000000080008009L, 0x000000008000000AL,
+        0x000000008000808BL, 0x800000000000008BL,
+        0x8000000000008089L, 0x8000000000008003L,
+        0x8000000000008002L, 0x8000000000000080L,
+        0x000000000000800AL, 0x800000008000000AL,
+        0x8000000080008081L, 0x8000000000008080L,
+        0x0000000080000001L, 0x8000000080008008L
+    };
 
-	    RC = new long[]{
-                0x0000000000000001L, 0x0000000000008082L,
-                0x800000000000808AL, 0x8000000080008000L,
-                0x000000000000808BL, 0x0000000080000001L,
-                0x8000000080008081L, 0x8000000000008009L,
-                0x000000000000008AL, 0x0000000000000088L,
-                0x0000000080008009L, 0x000000008000000AL,
-                0x000000008000808BL, 0x800000000000008BL,
-                0x8000000000008089L, 0x8000000000008003L,
-                0x8000000000008002L, 0x8000000000000080L,
-                0x000000000000800AL, 0x800000008000000AL,
-                0x8000000080008081L, 0x8000000000008080L,
-                0x0000000080000001L, 0x8000000080008008L
-            };
-	    RC = ByteUtil.invertLongArray(RC); // NiiiiiiiiiiiST 
-	}
 	
     public byte[] f(byte[] inData) {
     	
@@ -61,11 +55,22 @@ public class KeccakF {
     
     private long[] round(long[] data) {
 
+//    	System.out.println("before theta:");
+//    	ByteUtil.printArray(ByteUtil.reverseBytesInLongArray(data));
     	long[] aData = theta(data);
-        aData = rho(aData);
+//    	System.out.println("before rho:");
+//    	ByteUtil.printArray(ByteUtil.reverseBytesInLongArray(aData));
+//    	System.out.println();
+    	aData = rho(aData);
         aData = pi(aData);
         aData = chi(aData);
+//        System.out.println("before iota:");
+//        ByteUtil.printArray(ByteUtil.reverseBytesInLongArray(aData));
+//        System.out.println();
         aData = iota(aData);
+//        System.out.println("before iota:");
+//        ByteUtil.printArray(ByteUtil.reverseBytesInLongArray(aData));
+//        System.out.println();
         
     	return aData;
     }
