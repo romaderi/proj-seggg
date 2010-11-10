@@ -40,8 +40,9 @@ public class KeccakFTest {
     	//TODO: mais testes do byte->long e vice-versa
     	
     	KeccakF kf = new KeccakF();
-    	byte[] a = kf.f(ByteUtil.longArrayToByteArray(data));
-		data = ByteUtil.byteArrayToLongArray(a);
+    	//byte[] a = kf.f(ByteUtil.longArrayToByteArray(data));
+        long[] a = kf.theta(data);
+//    	        data = ByteUtil.byteArrayToLongArray(a);
 		ByteUtil.printArray(data);
 		
 //		System.out.println();

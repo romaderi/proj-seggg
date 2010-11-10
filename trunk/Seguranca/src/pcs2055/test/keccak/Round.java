@@ -8,17 +8,17 @@ import pcs2055.math.ByteUtil;
  */
 public class Round {
 
-    private byte[] teta;
+    private byte[] theta;
     private byte[] rho;
     private byte[] pi;
     private byte[] chi;
     private byte[] iota;
     
     public byte[] beforeTeta() {
-        return teta;
+        return theta;
     }
     public void setTeta(byte[] teta) {
-        this.teta = teta;
+        this.theta = teta;
     }
     public byte[] beforeRho() {
         return rho;
@@ -46,11 +46,11 @@ public class Round {
     }
 
     public void print() {
-        ByteUtil.printArray(ByteUtil.invertByteArray(teta), "theta= ");
-        ByteUtil.printArray(ByteUtil.invertByteArray(rho), "rho= ");
-        ByteUtil.printArray(ByteUtil.invertByteArray(pi), "pi= ");
-        ByteUtil.printArray(ByteUtil.invertByteArray(chi), "chi= ");
-        ByteUtil.printArray(ByteUtil.invertByteArray(iota), "iota= ");    
+        ByteUtil.printArray(ByteUtil.reverseBytesInByteArray(theta), "theta= ");
+        ByteUtil.printArray(ByteUtil.reverseBytesInByteArray(rho), "rho= ");
+        ByteUtil.printArray(ByteUtil.reverseBytesInByteArray(pi), "pi= ");
+        ByteUtil.printArray(ByteUtil.reverseBytesInByteArray(chi), "chi= ");
+        ByteUtil.printArray(ByteUtil.reverseBytesInByteArray(iota), "iota= ");    
     }
     
     
