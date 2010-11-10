@@ -32,46 +32,33 @@ public class KeccakTest {
     }
 
     @Test
-    public void testPreTheta() {
-        
-        // 1
-        long[] efe = new long[]{0xFFFFFFFFFFFFFFFFl};
-        long[] efe2 = new long[]{0xFFFFFFFFFFFFFFFFl, 0xFFFFFFFFFFFFFFFFl};
-        long[] in = ByteUtil.append(efe, new long[24], 1, 24);
-        
-        long[] out = ByteUtil.append(efe2, new long[2], 2, 2);
-        out = ByteUtil.append(out, efe, 4, 1);
-
-        out = ByteUtil.append(out, new long[1], out.length, 1);
-        out = ByteUtil.append(out, efe, out.length, 1);
-        out = ByteUtil.append(out, new long[2], out.length, 2);
-        out = ByteUtil.append(out, efe, out.length, 1);
-
-        out = ByteUtil.append(out, new long[1], out.length, 1);
-        out = ByteUtil.append(out, efe, out.length, 1);
-        out = ByteUtil.append(out, new long[2], out.length, 2);
-        out = ByteUtil.append(out, efe, out.length, 1);
-
-        out = ByteUtil.append(out, new long[1], out.length, 1);
-        out = ByteUtil.append(out, efe, out.length, 1);
-        out = ByteUtil.append(out, new long[2], out.length, 2);
-        out = ByteUtil.append(out, efe, out.length, 1);
-
-        out = ByteUtil.append(out, new long[1], out.length, 1);
-        out = ByteUtil.append(out, efe, out.length, 1);
-        out = ByteUtil.append(out, new long[2], out.length, 2);
-        out = ByteUtil.append(out, efe, out.length, 1);
-
-        assertArrayEquals(out, f.theta(in));
-    }
-
-    @Test
     public void testTheta() {
         
         // 1
         byte[] in = tests.get(0).getRounds1().get(0).beforeTeta();
         byte[] out = tests.get(0).getRounds1().get(0).beforeRho();
         assertArrayEquals(ByteUtil.byteArrayToLongArray(out), f.theta(ByteUtil.byteArrayToLongArray(in)));
+
+        // 2
+        in = tests.get(0).getRounds1().get(20).beforeTeta();
+        out = tests.get(0).getRounds1().get(20).beforeRho();
+        assertArrayEquals(ByteUtil.byteArrayToLongArray(out), f.theta(ByteUtil.byteArrayToLongArray(in)));
+
+        // 3
+        in = tests.get(0).getRounds2().get(12).beforeTeta();
+        out = tests.get(0).getRounds2().get(12).beforeRho();
+        assertArrayEquals(ByteUtil.byteArrayToLongArray(out), f.theta(ByteUtil.byteArrayToLongArray(in)));
+
+        // 4
+        in = tests.get(1).getRounds1().get(10).beforeTeta();
+        out = tests.get(1).getRounds1().get(10).beforeRho();
+        assertArrayEquals(ByteUtil.byteArrayToLongArray(out), f.theta(ByteUtil.byteArrayToLongArray(in)));
+
+        // 5
+        in = tests.get(1).getRounds2().get(3).beforeTeta();
+        out = tests.get(1).getRounds2().get(3).beforeRho();
+        assertArrayEquals(ByteUtil.byteArrayToLongArray(out), f.theta(ByteUtil.byteArrayToLongArray(in)));
+
     }
 
     @Test
@@ -80,9 +67,26 @@ public class KeccakTest {
         // 1
         byte[] in = tests.get(0).getRounds1().get(0).beforeRho();
         byte[] out = tests.get(0).getRounds1().get(0).beforePi();
-        
-        tests.get(0).getRounds1().get(0).print();
-        
+        assertArrayEquals(ByteUtil.byteArrayToLongArray(out), f.rho(ByteUtil.byteArrayToLongArray(in)));
+
+        // 2
+        in = tests.get(0).getRounds1().get(2).beforeRho();
+        out = tests.get(0).getRounds1().get(2).beforePi();
+        assertArrayEquals(ByteUtil.byteArrayToLongArray(out), f.rho(ByteUtil.byteArrayToLongArray(in)));
+
+        // 3
+        in = tests.get(0).getRounds2().get(17).beforeRho();
+        out = tests.get(0).getRounds2().get(17).beforePi();
+        assertArrayEquals(ByteUtil.byteArrayToLongArray(out), f.rho(ByteUtil.byteArrayToLongArray(in)));
+
+        // 4
+        in = tests.get(1).getRounds1().get(8).beforeRho();
+        out = tests.get(1).getRounds1().get(8).beforePi();
+        assertArrayEquals(ByteUtil.byteArrayToLongArray(out), f.rho(ByteUtil.byteArrayToLongArray(in)));
+
+        // 5
+        in = tests.get(1).getRounds2().get(5).beforeRho();
+        out = tests.get(1).getRounds2().get(5).beforePi();
         assertArrayEquals(ByteUtil.byteArrayToLongArray(out), f.rho(ByteUtil.byteArrayToLongArray(in)));
     }
 
