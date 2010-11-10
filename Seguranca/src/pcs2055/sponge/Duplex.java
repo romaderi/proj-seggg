@@ -1,5 +1,10 @@
 package pcs2055.sponge;
 
+/**
+ * usar o Keccak
+ *
+ */
+@Deprecated
 public interface Duplex {
 
     /**
