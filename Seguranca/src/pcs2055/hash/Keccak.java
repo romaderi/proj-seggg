@@ -27,8 +27,8 @@ public class Keccak implements HashFunction, Duplex {
         // by @pbarreto
 
     	if ( hashBits == 0){
-    		c = 576;
-    		r = 1024;
+    		c = 576/8;
+    		r = 1024/8;
     		d = 0;
     	} else {	
 	        c = 2 * hashBits/8;
@@ -61,18 +61,26 @@ public class Keccak implements HashFunction, Duplex {
     
     @Override
     public byte[] getHash(byte[] val) {
-        
-    	byte[] sr = new byte[8];
-    	
-    	// pad(M,8)||enc(d)||enc(r/8)
-        byte[] app = new byte[]{(byte)0x01, this.enc(this.d), this.enc(this.r)};
-    	ByteUtil.append(buffer, app, buffer.length, app.length);
-    	// pad(M,r)
-    	buffer = this.pad(buffer, this.r);
-    	this.duplexing(buffer, this.r, sr, this.r);
+
+		byte[] sr = new byte[8];
+		
+    	if ( buffer.length != 0 ) {
+    		// pad(M,8)||enc(d)||enc(r/8)
+    		byte[] app = new byte[]{(byte)0x01, this.enc(this.d), this.enc(this.r)};
+    		ByteUtil.append(buffer, app, buffer.length, app.length);
+    		// pad(M,r)
+    		buffer = this.pad(buffer, this.r);
+    	} else {
+    		buffer = new byte[this.r];
+    	}
+		this.duplexing(buffer, this.r, sr, 8);
 		Z = ByteUtil.append(Z, sr, Z.length, sr.length);
 		buffer = new byte[0];
-    	
+		
+		if ( val == null )
+			val = new byte[Z.length];
+	    val = Arrays.copyOf(Z, Z.length);
+	    
         return Z;
     }
     
@@ -117,7 +125,6 @@ public class Keccak implements HashFunction, Duplex {
                 return null; // TODO: seria melhor se fosse uma exception
             P = ByteUtil.append(P, pad, sigmaLength, pad.length);
         }
-
 
         byte[] zeros = new byte[c]; // c = b - r
         P = ByteUtil.append(P, zeros, P.length, c); // P.length < r (não devia ser igual a r?!)
