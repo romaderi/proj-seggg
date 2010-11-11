@@ -4,7 +4,6 @@ import java.util.Arrays;
 
 import pcs2055.math.ByteUtil;
 import pcs2055.sponge.Duplex;
-import pcs2055.sponge.TransformationF;
 
 public class Keccak implements HashFunction, Duplex {
 
@@ -127,10 +126,11 @@ public class Keccak implements HashFunction, Duplex {
         }
 
         byte[] zeros = new byte[c]; // c = b - r
+
         P = ByteUtil.append(P, zeros, P.length, c); // P.length < r (não devia ser igual a r?!)
         s = ByteUtil.xor(s, P, b); // s = s ⊕ (P ||0^b−r )
         s = keccakF.f(s); // s = f (s)
-
+        
         if (zLength > r)
             return null; // TODO: seria melhor se fosse uma exception
         if (z == null)
@@ -160,8 +160,9 @@ public class Keccak implements HashFunction, Duplex {
         
         int q = r-mLength;
         byte[] pad = new byte[q];
-        pad[0] = (byte) 0x80;
-        pad[q-1] = (byte) (0x01 | pad[q-1]);
+        pad[q-1] = (byte) 0x80; // nessa linha devia ser 0
+        pad[0] = (byte) (0x01 | pad[0]); // e aqui q-1
+        // ?????
         
         return pad;
     }

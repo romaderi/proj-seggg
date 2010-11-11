@@ -12,13 +12,6 @@ public class KeccakF {
 	//private static int l = 6;
 	private int nt = 24;  // 12+2*l, com l = 6
 	private int indexRound = 0;
-	private static final int[] keccakRhoOffsets = {
-		 0,  1, 62, 28, 27,
-		36, 44,  6, 55, 20,
-		 3, 10, 43, 25, 39,
-		41, 45, 15, 21,  8,
-		18,  2, 61, 56, 14
-	};
 	
 	private static final long[] RC ={
         0x0000000000000001L, 0x0000000000008082L,
@@ -53,7 +46,7 @@ public class KeccakF {
     }
     
     private long[] round(long[] data) {
-
+        
     	long[] aData = theta(data);
     	aData = rho(aData);
         aData = pi(aData);

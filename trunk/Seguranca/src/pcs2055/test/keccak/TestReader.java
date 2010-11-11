@@ -190,7 +190,7 @@ public class TestReader {
         Matcher matcher = pt.matcher(line);
         if (matcher.matches()) {
             String s = matcher.group(1);
-            return ByteUtil.nistStringToByteArray(s);
+            return ByteUtil.nistReverseStringToByteArray(s);
         }
         else return null;
     }

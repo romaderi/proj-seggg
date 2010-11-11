@@ -4,6 +4,11 @@ import java.util.Arrays;
 
 import pcs2055.math.ByteUtil;
 
+/**
+ * usar o Keccak
+ *
+ */
+@Deprecated
 public class SpongeDuplex implements Duplex {
 
     private int r; // bitrate (tamanho do estado que é xorado com a entrada)
