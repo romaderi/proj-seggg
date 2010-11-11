@@ -12,43 +12,29 @@ public class KeccakFTest {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		
-		byte[] aa = new byte[1];
-		aa[0] = 0x7A;
-		int d = 0;
-		int r = 1024;
-
-		long[] data = new long[25];
-    	data[0] = 0x000000000000017AL;
-    	data[15] = 0x8000000000000000L;
-    	//data[1] = 0x7A01000000000080L;
-    	//data[4] = 0xF502000000000000L;
-    	/*data[5] = 0x7A01000000000080L;
-    	data[9] = 0xF502000000000000L;
-    	data[11] = 0x7A01000000000080L;
-    	data[14] = 0xF502000000000000L;
-    	data[16] = 0x7A01000000000080L;
-    	data[19] = 0xF502000000000000L;
-    	data[21] = 0x7A01000000000080L;
-    	data[24] = 0xF502000000000000L;*/
-    	
-//    	ByteUtil.printArray(data);
-//    	System.out.println();
-//    	ByteUtil.printArray(ByteUtil.longArrayToByteArray(data));
-//    	System.out.println();
-//    	ByteUtil.printArray(ByteUtil.byteArrayToLongArray(ByteUtil.longArrayToByteArray(data)));
-//    	
-    	//TODO: mais testes do byte->long e vice-versa
-    	
-    	KeccakF kf = new KeccakF();
-    	//byte[] a = kf.f(ByteUtil.longArrayToByteArray(data));
-        long[] a = kf.theta(data);
-//    	        data = ByteUtil.byteArrayToLongArray(a);
-		ByteUtil.printArray(data);
+		Keccak k = new Keccak();
 		
-//		System.out.println();
-//		a = kf.f(ByteUtil.longArrayToByteArray(data));
-//		data = ByteUtil.byteArrayToLongArray(a);
-//		ByteUtil.printArray(ByteUtil.invertLongArray(data));
+		k.init(0);
+		
+		long[] M = new long[]{
+				0x83AF34279CCB5430L,0xFEBEC07A81950D30L,
+				0xF4B66F484826AFEEL,0x7456F0071A51E1BBL,
+				0xC55570B5CC7EC6F9L,0x309C17BF5BEFDD7CL,
+				0x6BA6E968CF218A2BL,0x34BD5CF927AB846EL,
+				0x38A40BBD81759E9EL,0x33381016A755F699L,
+				0xDF35D660007B5EADL,0xF292FEEFB735207EL,
+				0xBF70B5BD17834F7BL,0xFA0E16CB219AD4AFL,
+				0x524AB1EA37334AA6L,0x6435E5D397FC0A06L,
+				0x0000000000000000L,0x0000000000000000L,
+				0x0000000000000000L,0x0000000000000000L,
+				0x0000000000000000L,0x0000000000000000L,
+				0x0000000000000000L,0x0000000000000000L,
+				0x0000000000000000L};
+		
+		k.update(ByteUtil.longArrayToByteArray(M), M.length*8);
+		byte[] Z = k.getHash(null);
+		
+		ByteUtil.printArray(Z);
 		
 	}
 
