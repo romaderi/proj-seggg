@@ -340,8 +340,21 @@ public class ByteUtil {
     	return temp.byteValue();
     }
     
-    public static byte[] nistStringToByteArray (String s){
+    /**
+     * inverte os bits de cada um dos bytes do array
+     * @param b
+     * @return
+     */
+    public static byte[] invertBytesArray(byte[] b) {
+        byte[] r = new byte[b.length];
+        for (int i=0; i<b.length; i++)
+            r[i] = ByteUtil.invertByte(b[i]);
+        return r;
+    }
+    
+    public static byte[] nistReverseStringToByteArray(String s){
         
+        //byte[] b = nistStringToByteArray(s);
         byte[] b = ByteUtil.convertHexString(s);
         long[] l = ByteUtil.byteArrayToLongArray(b);
         l = ByteUtil.reverseBytesInLongArray(l);
