@@ -41,6 +41,8 @@ public class Keccak implements HashFunction, Duplex {
     @Override
     public void update(byte[] aData, int aLength) {
         
+    	
+    	
     	buffer = ByteUtil.append(buffer, aData, buffer.length, aLength);
     	byte[] pi = new byte[this.r];
     	byte[] sr = new byte[this.r];

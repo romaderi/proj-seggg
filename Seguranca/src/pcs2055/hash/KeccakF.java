@@ -36,6 +36,10 @@ public class KeccakF {
     	for (int i = 0; i < 25; i++)
     		data[i] = Long.reverseBytes(data[i]);
     	
+    	System.out.println("-> ");
+    	ByteUtil.printArray(data);
+    	System.out.println();
+    	
     	for ( indexRound = 0; indexRound < nt; indexRound++)
         	data = round(data);
     	
