@@ -7,14 +7,17 @@ public class TestRandom {
 
     public static void main(String[] args) {
 
+        int r = 128;
         SpongeRandom random = new SpongePRNG();
         random.init(0);
-        random.feed(new byte[100], 100);
-        byte[] z = new byte[100];
-        z = random.fetch(z, 100);
-        for (int i=0; i<25; i++)
-            System.out.printf("%x", z[i]);
-        
+        random.feed(new byte[r], r);
+        byte[] z = new byte[r];
+        for (int i=0; i<5; i++) {
+            z = random.fetch(z, r);
+            for (int j=0; j<25; j++)
+                System.out.printf("%x", z[j]);
+            System.out.println();
+        }
     }
 
 }
