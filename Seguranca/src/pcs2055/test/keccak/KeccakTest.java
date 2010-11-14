@@ -22,20 +22,31 @@ public class KeccakTest {
     private final String TEST_FILE2 = "test/Test.Vectors.512bit.Keccak.txt";
     private final String TEST_FILE3 = "test/Test.Vectors.Default.Keccak.txt";
     
-    private List<CaseTest> tests;
+    private List<CaseTest> tests1, tests2, tests3;
     private KeccakF f = new KeccakF();
     Duplex keccak;
 
     @Before
     public void setUp() throws Exception {
         
-        TestReader reader = new TestReader(TEST_FILE3);
-        this.tests = reader.parseTests(); // obtêm valores dos vetores de teste
+     // obtêm valores dos vetores de teste
+        TestReader reader = new TestReader(TEST_FILE1);
+        this.tests1 = reader.parseTests(); 
+        reader = new TestReader(TEST_FILE2);
+        this.tests2 = reader.parseTests(); 
+        reader = new TestReader(TEST_FILE3);
+        this.tests3 = reader.parseTests(); 
     }
 
     @Test
     public void testTheta() {
-        
+
+        this.testTheta(this.tests1);
+        this.testTheta(this.tests2);
+        this.testTheta(this.tests3);
+    }
+    
+    private void testTheta(List<CaseTest> tests) {
         // 1
         byte[] in = tests.get(0).getRounds1().get(0).beforeTeta();
         byte[] out = tests.get(0).getRounds1().get(0).beforeRho();
@@ -66,6 +77,13 @@ public class KeccakTest {
     @Test
     public void testRho() {
         
+        this.testRho(this.tests1);
+        this.testRho(this.tests2);
+        this.testRho(this.tests3);
+    }
+     
+    private void testRho(List<CaseTest> tests) {
+        
         // 1
         byte[] in = tests.get(0).getRounds1().get(0).beforeRho();
         byte[] out = tests.get(0).getRounds1().get(0).beforePi();
@@ -91,9 +109,16 @@ public class KeccakTest {
         out = tests.get(1).getRounds2().get(5).beforePi();
         assertArrayEquals(ByteUtil.byteArrayToLongArray(out), f.rho(ByteUtil.byteArrayToLongArray(in)));
     }
-
+    
     @Test
     public void testPi() {
+        
+        this.testPi(this.tests1);
+        this.testPi(this.tests2);
+        this.testPi(this.tests3);
+    }
+
+    private void testPi(List<CaseTest> tests) {
         
         // 1
         byte[] in = tests.get(0).getRounds1().get(0).beforePi();
@@ -123,6 +148,13 @@ public class KeccakTest {
 
     @Test
     public void testChi() {
+        
+        this.testChi(this.tests1);
+        this.testChi(this.tests2);
+        this.testChi(this.tests3);
+    }
+
+    public void testChi(List<CaseTest> tests) {
         
         // 1
         byte[] in = tests.get(0).getRounds1().get(0).beforeChi();
@@ -154,6 +186,13 @@ public class KeccakTest {
     @Test
     public void testIota() {
         
+        this.testIota(this.tests1);
+        this.testIota(this.tests2);
+        this.testIota(this.tests3);
+    }
+
+    private void testIota(List<CaseTest> tests) {
+        
         // 1
         byte[] in = tests.get(0).getRounds1().get(0).beforeIota();
         byte[] out = tests.get(0).getRounds1().get(1).beforeTeta();
@@ -181,7 +220,69 @@ public class KeccakTest {
     }
     
     @Test
-    public void testZ() {
+    public void testZ1() {
+        
+        List<CaseTest> tests = this.tests1;
+        
+        keccak = new Keccak();
+
+        keccak.init(256);
+        byte[] in = tests.get(0).getSigma0();
+        byte[] out = tests.get(0).getZ0();
+        byte[] z = keccak.duplexing(in, in.length, null, 10);
+        assertArrayEquals(out, z);        
+
+        in = tests.get(0).getSigma1();
+        out = tests.get(0).getZ1();
+        z = keccak.duplexing(in, in.length, null, 10);
+        assertArrayEquals(out, z);            
+
+        keccak.init(256);
+        in = tests.get(1).getSigma0();
+        out = tests.get(1).getZ0();
+        z = keccak.duplexing(in, in.length, null, 10);
+        assertArrayEquals(out, z);  
+        
+        in = tests.get(1).getSigma1();
+        out = tests.get(1).getZ1();
+        z = keccak.duplexing(in, in.length, null, 10);
+        assertArrayEquals(out, z);            
+    }
+
+    @Test
+    public void testZ2() {
+        
+        List<CaseTest> tests = this.tests2;
+        
+        keccak = new Keccak();
+
+        keccak.init(512);
+        byte[] in = tests.get(0).getSigma0();
+        byte[] out = tests.get(0).getZ0();
+        byte[] z = keccak.duplexing(in, in.length, null, 10);
+        assertArrayEquals(out, z);        
+
+        in = tests.get(0).getSigma1();
+        out = tests.get(0).getZ1();
+        z = keccak.duplexing(in, in.length, null, 10);
+        assertArrayEquals(out, z);            
+
+        keccak.init(512);
+        in = tests.get(1).getSigma0();
+        out = tests.get(1).getZ0();
+        z = keccak.duplexing(in, in.length, null, 10);
+        assertArrayEquals(out, z);  
+        
+        in = tests.get(1).getSigma1();
+        out = tests.get(1).getZ1();
+        z = keccak.duplexing(in, in.length, null, 10);
+        assertArrayEquals(out, z);            
+    }
+
+    @Test
+    public void testZ3() {
+        
+        List<CaseTest> tests = this.tests3;
         
         keccak = new Keccak();
 
@@ -207,5 +308,6 @@ public class KeccakTest {
         z = keccak.duplexing(in, in.length, null, 10);
         assertArrayEquals(out, z);            
     }
+
     
 }
