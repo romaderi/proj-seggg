@@ -29,7 +29,7 @@ public interface DigitalSignature {
     *
     * @return a Schnorr public key, i.e. a BigInteger y.
     */
-    BigInteger akeKeyPair(String passwd);
+    BigInteger makeKeyPair(String passwd);
     
     /**
     * Prepare to sign or verify a new message.
