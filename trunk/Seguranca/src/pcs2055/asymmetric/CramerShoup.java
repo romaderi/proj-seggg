@@ -7,6 +7,9 @@ import pcs2055.sponge.SpongeRandom;
 
 public class CramerShoup implements KeyEncapsulation {
     
+    // TODO nomes das variáveis estão de acordo com wikipedia
+    // deixar de acordo com os nomes nas interfaces    
+    
     // chave privada
     private BigInteger x1, x2, y1, y2, z;
     
@@ -66,14 +69,29 @@ public class CramerShoup implements KeyEncapsulation {
     @Override
     public BigInteger[] encrypt(BigInteger[] pk, byte[] m) {
 
+        // chave pública fornecida
         BigInteger c = pk[0];
         BigInteger d = pk[1];
         BigInteger h = pk[2];
         
-        // random value r ???
-        
+        // chooses a random k from {0, ..., q-1}
+        byte[] zz = random.fetch(null, 128); // TODO: 128???
+        BigInteger k = new BigInteger(zz).mod(q);
+         
         // encripta a chave simétrica m com a chave pública pk
-        BigInteger u1 = null, u2 = null, e = null, v = null;
+        BigInteger u1 = g1.modPow(k, q); 
+        BigInteger u2 = g2.modPow(k, q); 
+        BigInteger mm = new BigInteger(m);
+        BigInteger e = h.modPow(k, q).multiply(mm).mod(q); 
+        hash.init(0); // TODO 0 ???
+        hash.update(u1.toByteArray(), u1.toByteArray().length);
+        hash.update(u2.toByteArray(), u2.toByteArray().length);
+        hash.update(e.toByteArray(), e.toByteArray().length);
+        BigInteger alfa = new BigInteger(hash.getHash(null));
+        BigInteger v = c.modPow(k, q);
+        BigInteger kalfa = k.multiply(alfa).mod(q);
+        v = v.multiply(d.modPow(kalfa, q)).mod(q);
+        // TODO: verificar os mod q
         
         return new BigInteger[]{u1, u2, e, v};
     }
@@ -81,18 +99,38 @@ public class CramerShoup implements KeyEncapsulation {
     @Override
     public byte[] decrypt(String passwd, BigInteger[] cs) {
 
+        // chave simétrica criptografada em {u1,u2,e,v}
         BigInteger u1 = cs[0];
         BigInteger u2 = cs[1];
         BigInteger e  = cs[2];
         BigInteger v  = cs[3];
         
+        // TODO checar mod p, mod q
+        
+        // faz teste pra checar se é possível descriptografar
+        hash.init(0); // TODO 0 ???
+        hash.update(u1.toByteArray(), u1.toByteArray().length);
+        hash.update(u2.toByteArray(), u2.toByteArray().length);
+        hash.update(e.toByteArray(), e.toByteArray().length);
+        BigInteger alfa = new BigInteger(hash.getHash(null));
+        BigInteger check = u1.modPow(x1, q);
+        check = check.multiply(u2.modPow(x2, q)).mod(q);
+        BigInteger factor = u1.modPow(y1, q);
+        factor = factor.multiply(u2.modPow(y2, q));
+        factor = factor.modPow(alfa, q);
+        check = check.multiply(factor).mod(q);
+        if (!check.equals(v))
+            return null;
+        
         // descriptografa e retorna a chave simétrica
         
-        // m = e * (u1^z)^(-1)
-        BigInteger m = null;
-
+        // m = e * (u1^z)^(-1) mod p
+        BigInteger fac = u1.modPow(z, p).modInverse(p);
+        BigInteger m = e.multiply(fac).mod(p);
+        
         // convert to byte array, without the left-padding of “0” bits
         byte[] mbytes = m.toByteArray();
+        // TODO without the left-padding of “0” bits
         
         return mbytes;
     }

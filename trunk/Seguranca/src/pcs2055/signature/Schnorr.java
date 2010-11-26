@@ -3,15 +3,23 @@ package pcs2055.signature;
 import java.math.BigInteger;
 
 import pcs2055.hash.HashFunction;
+import pcs2055.math.ByteUtil;
 import pcs2055.sponge.SpongeRandom;
 
 public class Schnorr implements DigitalSignature {
+    
+    // TODO nomes das variáveis estão de acordo com wikipedia
+    // deixar de acordo com os nomes nas interfaces
     
     // chave privada
     private BigInteger x;
     
     // chave pública
     private BigInteger y;
+    
+    private BigInteger k; // número aleatório
+    private byte[] r; // usado pro pad
+    private byte[] M; // mensagem
     
     // atributos do setup
     private BigInteger p, q, g;
@@ -48,26 +56,55 @@ public class Schnorr implements DigitalSignature {
 
     @Override
     public void init() {
-        // TODO Auto-generated method stub
+
+        M = new byte[0];
         
+        // TODO verificar mod p q
+        
+        // Choose a random k such that 0 < k < q
+        byte[] zz = random.fetch(null, 128); // TODO: 128???
+        k = new BigInteger(zz).mod(q);
+        r = g.modPow(k, q).toByteArray();
     }
 
     @Override
     public void update(byte[] aData, int aLength) {
-        // TODO Auto-generated method stub
-        
+
+        ByteUtil.append(M, aData, M.length, aLength);
     }
 
     @Override
     public BigInteger[] sign(String passwd) {
-        // TODO Auto-generated method stub
-        return null;
+
+        byte[] hr = ByteUtil.append(M, r, M.length, r.length);
+        hash.init(0); // TODO 0 ???
+        hash.update(hr, hr.length);
+        BigInteger e = new BigInteger(hash.getHash(null));
+        BigInteger xe = x.multiply(e).mod(q);
+        BigInteger s = k.subtract(xe).mod(q);
+        
+        return new BigInteger[]{e, s};
     }
     
     @Override
     public boolean verify(BigInteger y, BigInteger[] sig) {
-        // TODO Auto-generated method stub
-        return false;
+
+        BigInteger e = sig[0];
+        BigInteger s = sig[1];
+        
+        BigInteger rv = g.modPow(s, q);
+        BigInteger factor = y.modPow(e, q);
+        rv = rv.multiply(factor).mod(q);
+
+        byte[] Mrv = ByteUtil.append(M, rv.toByteArray(), M.length, rv.toByteArray().length);
+        hash.init(0); // TODO 0 ???
+        hash.update(Mrv, Mrv.length);
+        BigInteger ev = new BigInteger(hash.getHash(null));
+
+        if (ev.equals(e))
+            return true;
+        else
+            return false;
     }
 
 }
