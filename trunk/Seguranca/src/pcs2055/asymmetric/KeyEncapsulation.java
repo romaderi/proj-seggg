@@ -15,7 +15,7 @@ public interface KeyEncapsulation {
     * @param g1 the 1st subgroup generator.
     * @param g2 the 2nd subgroup generator.
     * @param H the chosen hash function.
-    * @param sr the chosen sponge-based PRNG.
+    * @param sr the chosen sponge-based PRNG (initiated and fed).
     */
     void setup(BigInteger p, BigInteger q, BigInteger g1,
                 BigInteger g2, HashFunction H, SpongeRandom sr);
