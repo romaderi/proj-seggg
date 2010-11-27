@@ -8,13 +8,13 @@ import pcs2055.sponge.SpongeRandom;
 
 public class Schnorr implements DigitalSignature {
     
-    // TODO nomes das variáveis estão de acordo com wikipedia
-    // deixar de acordo com os nomes nas interfaces
-    
-    // chave privada
+    // 256 bits para fornecer um nível de segurança de 128 bits
+    private static int PRIVATE_BITS_KEY_SIZE = 256;
+
+    // chave privada (módulo q)
     private BigInteger x;
     
-    // chave pública
+    // chave pública (módulo p)
     private BigInteger y;
     
     private BigInteger k; // número aleatório
@@ -40,10 +40,11 @@ public class Schnorr implements DigitalSignature {
     public BigInteger makeKeyPair(String passwd) {
 
         // alimenta o gerador aleatório
+        random.init(PRIVATE_BITS_KEY_SIZE);
         random.feed(passwd.getBytes(), passwd.getBytes().length);
 
         // choose a private key x such that 0 < x < q
-        int zLength = 128; // TODO: zlength???
+        int zLength = PRIVATE_BITS_KEY_SIZE; 
         byte[] zbuf = new byte[zLength]; 
         zbuf = random.fetch(zbuf, zLength);        
         x = new BigInteger(zbuf).mod(q);
@@ -59,12 +60,11 @@ public class Schnorr implements DigitalSignature {
 
         M = new byte[0];
         
-        // TODO verificar mod p q
-        
         // Choose a random k such that 0 < k < q
-        byte[] zz = random.fetch(null, 128); // TODO: 128???
+        int zzLength = PRIVATE_BITS_KEY_SIZE/8; 
+        byte[] zz = random.fetch(null, zzLength); 
         k = new BigInteger(zz).mod(q);
-        r = g.modPow(k, q).toByteArray();
+        r = g.modPow(k, p).toByteArray();
     }
 
     @Override
@@ -77,7 +77,7 @@ public class Schnorr implements DigitalSignature {
     public BigInteger[] sign(String passwd) {
 
         byte[] hr = ByteUtil.append(M, r, M.length, r.length);
-        hash.init(0); // TODO 0 ???
+        hash.init(PRIVATE_BITS_KEY_SIZE); 
         hash.update(hr, hr.length);
         BigInteger e = new BigInteger(hash.getHash(null));
         BigInteger xe = x.multiply(e).mod(q);
@@ -92,12 +92,12 @@ public class Schnorr implements DigitalSignature {
         BigInteger e = sig[0];
         BigInteger s = sig[1];
         
-        BigInteger rv = g.modPow(s, q);
-        BigInteger factor = y.modPow(e, q);
-        rv = rv.multiply(factor).mod(q);
+        BigInteger rv = g.modPow(s, p);
+        BigInteger factor = y.modPow(e, p);
+        rv = rv.multiply(factor).mod(p);
 
         byte[] Mrv = ByteUtil.append(M, rv.toByteArray(), M.length, rv.toByteArray().length);
-        hash.init(0); // TODO 0 ???
+        hash.init(PRIVATE_BITS_KEY_SIZE); 
         hash.update(Mrv, Mrv.length);
         BigInteger ev = new BigInteger(hash.getHash(null));
 
