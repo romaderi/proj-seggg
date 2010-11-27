@@ -435,5 +435,5 @@ public class ByteUtil {
     			System.out.printf("%x ", s[i*5+j]);
     		System.out.println();
     	}
-    }
+    }    
 }
