@@ -41,8 +41,6 @@ public class Keccak implements HashFunction, Duplex {
     @Override
     public void update(byte[] aData, int aLength) {
         
-    	
-    	
     	buffer = ByteUtil.append(buffer, aData, buffer.length, aLength);
     	byte[] pi = new byte[this.r];
     	byte[] sr = new byte[this.r];
@@ -51,58 +49,58 @@ public class Keccak implements HashFunction, Duplex {
     		return;
     	
     	while ( buffer.length >= this.r ){
+    		System.out.println(buffer.length);
     		pi = Arrays.copyOf(buffer, this.r);
-    		this.duplexing(pi, this.r, sr, this.r);
-    		Z = ByteUtil.append(Z, sr, Z.length, sr.length);
     		buffer = Arrays.copyOfRange(buffer, this.r, buffer.length);
-    		this.duplexing(new byte[this.r], r, null, 0);
+    		this.duplexing(pi, this.r, sr, sr.length);
+//    		Z = ByteUtil.append(Z, sr, Z.length, sr.length);
+//    		this.duplexing(new byte[this.r], r, null, 0);
     	}
+    	
 
     }
     
     @Override
     public byte[] getHash(byte[] val) {
 
-		byte[] sr = new byte[8];
+		byte[] sr = new byte[this.r];
 		
-    	if ( buffer.length != 0 ) {
-    		// pad(M,8)||enc(d)||enc(r/8)
-    		byte[] app = new byte[]{(byte)0x01, this.enc(this.d), this.enc(this.r)};
-    		ByteUtil.append(buffer, app, buffer.length, app.length);
-    		// pad(M,r)
-    		buffer = this.pad(buffer, this.r);
-    	} else {
-    		buffer = new byte[this.r];
-    	}
-		this.duplexing(buffer, this.r, sr, 8);
+//    	if ( buffer.length != 0 ) {
+		byte[] app = new byte[]{(byte)0x01, this.enc(this.d*8), this.enc(this.r)}; // pad(M,8)||enc(d)||enc(r/8)
+		buffer = ByteUtil.append(buffer, app, buffer.length, app.length);
+		buffer = this.pad(buffer, this.r); // pad(M,r)
+//    	} else {
+//    		buffer = new byte[this.r];
+//    	}
+		this.duplexing(buffer, this.r, sr, sr.length);
 		Z = ByteUtil.append(Z, sr, Z.length, sr.length);
 		buffer = new byte[0];
 		
 		if ( val == null )
 			val = new byte[Z.length];
-	    val = Arrays.copyOf(Z, Z.length);
+	    val = Arrays.copyOf(Z, c/2);
 	    
-        return Z;
+        return Arrays.copyOf(Z, c/2);
     }
     
     private byte[] pad(byte[] M, int n){
     	
     	byte[] ret = new byte[M.length + 1];
-    	byte[] bit1 = new byte[]{0x01};
+    	byte[] bit1 = new byte[]{(byte)0x01};
     	
     	ret = ByteUtil.append(M, bit1, M.length, 1);
     	
-    	if ( (ret.length*8) % n != 0 ) {
+    	if ( ret.length % n != 0 ) {
     		byte[] tmp = Arrays.copyOf(ret, ret.length);
-    		byte[] bytes0 = new byte[(n-((tmp.length*8)%n))/8];
-    		ret = new byte[ret.length + (n-((tmp.length*8)%n))/8];
+    		byte[] bytes0 = new byte[n-(tmp.length%n)];
+    		ret = new byte[ret.length + n-(tmp.length%n)];
     		ret = ByteUtil.append(tmp, bytes0, tmp.length, bytes0.length);
     	}
     	
     	return ret;
     }
 
-    private byte enc(int x){
+    public byte enc(int x){
     	return ByteUtil.invertByte((byte)x);
     }
 
