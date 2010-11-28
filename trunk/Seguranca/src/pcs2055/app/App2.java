@@ -51,7 +51,7 @@ public class App2 {
             System.out.print("Entre com o valor de r: ");
             try {
                 value = inFromUser.readLine();
-                r = Integer.parseInt(value);
+                r = Integer.parseInt(value) / 8;
             } catch (Exception e) {
             }
             c = b - r;
@@ -64,6 +64,10 @@ public class App2 {
             }
             hashlen = c / 2;
         }
+        
+        r = r/8;
+        c = c/8;
+        d = d/8;
 
         System.out.print("Digite 0 para calculo o resumo Keccak[r,c,d] ou 1 para "
                 + "calcular um numero de bytes pseudo-aleatorios: ");
@@ -73,14 +77,15 @@ public class App2 {
         } catch (Exception e) {
         }
 
-        System.out.print("Digite o nome do arquivo para ser autenticado: ");
+        System.out.print("Digite o nome do arquivo de entrada: ");
         String fileName = new String("");
         try {
             fileName = inFromUser.readLine();
         } catch (Exception e) {
         }
+        
         byte[] fileData = readByteFile(fileName);
-
+        
         byte[] result = null;
         String outName = null;
         if (option.equals(Integer.toString(0))) {
@@ -90,19 +95,20 @@ public class App2 {
             HashFunction k = new Keccak();
             k.init(hashlen);
 
-            byte[] tmp = new byte[r / 8];
-            for (int i = 0; i < fileData.length; i += r / 8) {
-                if (i + r / 8 < fileData.length) {
-                    tmp = Arrays.copyOfRange(fileData, i, i + r / 8);
-                    k.update(tmp, r / 8);
-                } else {
-                    tmp = Arrays.copyOfRange(fileData, i, fileData.length);
-                    k.update(tmp, tmp.length);
-                }
-            }
+//            byte[] tmp = new byte[r / 8];
+//            for (int i = 0; i < fileData.length; i += r / 8) {
+//                if (i + r / 8 < fileData.length) {
+//                    tmp = Arrays.copyOfRange(fileData, i, i + r / 8);
+//                    k.update(tmp, r / 8);
+//                } else {
+//                    tmp = Arrays.copyOfRange(fileData, i, fileData.length);
+//                    k.update(tmp, tmp.length);
+//                }
+//            }
+            k.update(fileData, fileData.length);
 
             result = k.getHash(null);
-
+            ByteUtil.printArray(result, "\nhash: ");
         } else if (option.equals(Integer.toString(1))) {
 
             outName = fileName.replaceAll("\\.\\w{3}$", ".rand");
@@ -172,6 +178,7 @@ public class App2 {
             return dataIn;
 
         } catch (Exception e) {
+        	System.out.println("Error in reading file " + fileName);
             return null;
         }
     }
