@@ -1,5 +1,7 @@
 package pcs2055.test;
 
+import java.math.BigInteger;
+
 import pcs2055.hash.Keccak;
 import pcs2055.hash.KeccakF;
 import pcs2055.math.ByteUtil;
@@ -10,6 +12,11 @@ public class KeccakFTest {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		
+		
+		BigInteger aa = BigInteger.valueOf(5);
+		System.out.println(aa.modPow(BigInteger.valueOf(38108), BigInteger.valueOf(10)));
+		
 		
 		Keccak k = new Keccak();
 		
@@ -76,15 +83,20 @@ public class KeccakFTest {
 //				0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
 //				0x1E, 0x1F, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27};
 //		msg = new byte[390];
-		Keccak K = new Keccak();
-		K.init(0);
-		K.update(msg, msg.length);
-		ByteUtil.printArray(K.getHash(null));
+//		Keccak K = new Keccak();
+//		K.init(0);
+//		K.update(msg, msg.length);
+//		ByteUtil.printArray(K.getHash(null));
 //		KeccakF kf = new KeccakF();
 //		long[] blank = new long[25];
 //		ByteUtil.printArray(kf.f(ByteUtil.longArrayToByteArray(blank)));
 //		ByteUtil.printArray(kf.f(kf.f(ByteUtil.longArrayToByteArray(blank))), "\n");
 		
+		byte[] a = new byte[]{0x02, 0x0a, 0x05, 0x05};
+		Keccak KECCAK = new Keccak();
+		KECCAK.init(16);
+		KECCAK.update(a, a.length);
+		ByteUtil.printArray(KECCAK.getHash(null));
 		
 	}
 

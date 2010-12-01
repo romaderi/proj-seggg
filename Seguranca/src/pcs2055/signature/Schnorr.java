@@ -33,7 +33,8 @@ public class Schnorr implements DigitalSignature {
         this.q = q;
         this.g = g;
         this.hash = H;
-        this.random = sr;        
+        this.random = sr;
+        
     }
 
     @Override
@@ -48,7 +49,7 @@ public class Schnorr implements DigitalSignature {
         byte[] zbuf = new byte[zLength]; 
         zbuf = random.fetch(zbuf, zLength);        
         x = new BigInteger(zbuf).mod(q);
-        
+
         // calcula y = g^x mod p
         y = g.modPow(x, p);
         
@@ -59,28 +60,35 @@ public class Schnorr implements DigitalSignature {
     public void init() {
 
         M = new byte[0];
-        
-        // Choose a random k such that 0 < k < q
-        int zzLength = PRIVATE_BITS_KEY_SIZE/8; 
-        byte[] zz = random.fetch(null, zzLength); 
-        k = new BigInteger(zz).mod(q);
-        r = g.modPow(k, p).toByteArray();
     }
 
     @Override
     public void update(byte[] aData, int aLength) {
 
-        ByteUtil.append(M, aData, M.length, aLength);
+        M = ByteUtil.append(M, aData, M.length, aLength);
     }
 
     @Override
     public BigInteger[] sign(String passwd) {
 
+        // Choose a random k such that 0 < k < q
+        int zzLength = PRIVATE_BITS_KEY_SIZE/8; 
+        byte[] zz = random.fetch(null, zzLength); 
+        k = new BigInteger(zz).mod(q);
+        r = g.modPow(k, p).toByteArray();
+
+        ByteUtil.printArray(r);
+        System.out.println();
+        System.out.println(this.x);
+        System.out.println(this.q);
+        
         byte[] hr = ByteUtil.append(M, r, M.length, r.length);
         hash.init(PRIVATE_BITS_KEY_SIZE); 
         hash.update(hr, hr.length);
-        BigInteger e = new BigInteger(hash.getHash(null));
-        BigInteger xe = x.multiply(e).mod(q);
+        byte[] zero = new byte[1];
+        byte[] resume = hash.getHash(null);
+        BigInteger e = new BigInteger(ByteUtil.append(zero, resume, 1, resume.length));
+        BigInteger xe = x.multiply(e).mod(p);
         BigInteger s = k.subtract(xe).mod(q);
         
         return new BigInteger[]{e, s};
@@ -99,7 +107,9 @@ public class Schnorr implements DigitalSignature {
         byte[] Mrv = ByteUtil.append(M, rv.toByteArray(), M.length, rv.toByteArray().length);
         hash.init(PRIVATE_BITS_KEY_SIZE); 
         hash.update(Mrv, Mrv.length);
-        BigInteger ev = new BigInteger(hash.getHash(null));
+        byte[] zero = new byte[1];
+        byte[] resume = hash.getHash(null);
+        BigInteger ev = new BigInteger(ByteUtil.append(zero, resume, 1, resume.length));
 
         if (ev.equals(e))
             return true;
