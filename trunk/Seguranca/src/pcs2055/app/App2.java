@@ -51,7 +51,7 @@ public class App2 {
             System.out.print("Entre com o valor de r: ");
             try {
                 value = inFromUser.readLine();
-                r = Integer.parseInt(value) / 8;
+                r = Integer.parseInt(value);
             } catch (Exception e) {
             }
             c = b - r;
@@ -86,29 +86,20 @@ public class App2 {
         
         byte[] fileData = readByteFile(fileName);
         
-        byte[] result = null;
+        byte[] result = new byte[hashlen];
         String outName = null;
         if (option.equals(Integer.toString(0))) {
             
             outName = fileName.replaceAll("\\.\\w{3}$", ".hash");
             System.out.println("Inicio do calculo do Keccak[r,c,d].");
+
             HashFunction k = new Keccak();
-            k.init(hashlen);
-
-//            byte[] tmp = new byte[r / 8];
-//            for (int i = 0; i < fileData.length; i += r / 8) {
-//                if (i + r / 8 < fileData.length) {
-//                    tmp = Arrays.copyOfRange(fileData, i, i + r / 8);
-//                    k.update(tmp, r / 8);
-//                } else {
-//                    tmp = Arrays.copyOfRange(fileData, i, fileData.length);
-//                    k.update(tmp, tmp.length);
-//                }
-//            }
+            k.init(hashlen);            
             k.update(fileData, fileData.length);
-
             result = k.getHash(null);
             ByteUtil.printArray(result, "\nhash: ");
+            System.out.println();
+        
         } else if (option.equals(Integer.toString(1))) {
 
             outName = fileName.replaceAll("\\.\\w{3}$", ".rand");

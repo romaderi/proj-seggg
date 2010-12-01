@@ -29,13 +29,18 @@ public class Keccak implements HashFunction, Duplex {
     		c = 576/8;
     		r = 1024/8;
     		d = 0;
-    	} else {	
+    	} else {
 	        c = 2 * hashBits/8;
 	        r = b - c;
+	        d = 0;
     	}
         s = new byte[b]; // s = 0^b
         Z = new byte[0];
         buffer = new byte[0];
+    }
+    
+    public void setCapacity(int capacity){
+    	this.c = capacity/8;
     }
 
     @Override
@@ -43,21 +48,17 @@ public class Keccak implements HashFunction, Duplex {
         
     	buffer = ByteUtil.append(buffer, aData, buffer.length, aLength);
     	byte[] pi = new byte[this.r];
-    	byte[] sr = new byte[this.r];
+    	byte[] sr = new byte[this.r];    	
     	
     	if ( buffer.length < this.r)
     		return;
     	
     	while ( buffer.length >= this.r ){
-    		System.out.println(buffer.length);
     		pi = Arrays.copyOf(buffer, this.r);
     		buffer = Arrays.copyOfRange(buffer, this.r, buffer.length);
     		this.duplexing(pi, this.r, sr, sr.length);
-//    		Z = ByteUtil.append(Z, sr, Z.length, sr.length);
-//    		this.duplexing(new byte[this.r], r, null, 0);
     	}
     	
-
     }
     
     @Override
@@ -65,14 +66,16 @@ public class Keccak implements HashFunction, Duplex {
 
 		byte[] sr = new byte[this.r];
 		
-//    	if ( buffer.length != 0 ) {
 		byte[] app = new byte[]{(byte)0x01, this.enc(this.d*8), this.enc(this.r)}; // pad(M,8)||enc(d)||enc(r/8)
 		buffer = ByteUtil.append(buffer, app, buffer.length, app.length);
 		buffer = this.pad(buffer, this.r); // pad(M,r)
-//    	} else {
-//    		buffer = new byte[this.r];
-//    	}
-		this.duplexing(buffer, this.r, sr, sr.length);
+		
+		byte[] pi;
+		while ( buffer.length >= this.r ){
+			pi = Arrays.copyOf(buffer, this.r);
+    		buffer = Arrays.copyOfRange(buffer, this.r, buffer.length);
+    		this.duplexing(pi, this.r, sr, sr.length);
+    	}
 		Z = ByteUtil.append(Z, sr, Z.length, sr.length);
 		buffer = new byte[0];
 		
@@ -93,7 +96,7 @@ public class Keccak implements HashFunction, Duplex {
     	if ( ret.length % n != 0 ) {
     		byte[] tmp = Arrays.copyOf(ret, ret.length);
     		byte[] bytes0 = new byte[n-(tmp.length%n)];
-    		ret = new byte[ret.length + n-(tmp.length%n)];
+    		ret = new byte[tmp.length + n-(tmp.length%n)];
     		ret = ByteUtil.append(tmp, bytes0, tmp.length, bytes0.length);
     	}
     	
@@ -101,7 +104,7 @@ public class Keccak implements HashFunction, Duplex {
     }
 
     public byte enc(int x){
-    	return ByteUtil.invertByte((byte)x);
+    	return (byte)x;
     }
 
     /*************/
