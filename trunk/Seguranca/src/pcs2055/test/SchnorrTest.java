@@ -47,5 +47,20 @@ public class SchnorrTest {
         
         assertEquals(true, ok);
     }
+    
+    
+    public void selfTestManual() {
+        
+        String senha = "aligeiraraposaatacaocaopreguicoso";
+        byte[] M = new byte[]{0x02, 0x0A, 0x05};
+        
+        BigInteger pk = ds.makeKeyPair(senha);
+        ds.init();
+        ds.update(M, M.length);
+        BigInteger[] sign = ds.sign(senha);
+        boolean ok = ds.verify(pk, sign);
+        
+        assertEquals(true, ok);
+    }
 
 }
