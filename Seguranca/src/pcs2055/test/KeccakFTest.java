@@ -92,7 +92,7 @@ public class KeccakFTest {
 //		ByteUtil.printArray(kf.f(ByteUtil.longArrayToByteArray(blank)));
 //		ByteUtil.printArray(kf.f(kf.f(ByteUtil.longArrayToByteArray(blank))), "\n");
 		
-		byte[] a = new byte[]{0x02, 0x0a, 0x05, 0x05};
+		byte[] a = new byte[]{0x06, 0x01, 0x00};
 		Keccak KECCAK = new Keccak();
 		KECCAK.init(16);
 		KECCAK.update(a, a.length);
