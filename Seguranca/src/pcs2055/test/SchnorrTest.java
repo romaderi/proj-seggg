@@ -48,11 +48,11 @@ public class SchnorrTest {
         assertEquals(true, ok);
     }
     
-    
-    public void selfTestManual() {
-        
+    //@Test 
+    public void selfMiniTest() {
+
         String senha = "aligeiraraposaatacaocaopreguicoso";
-        byte[] M = new byte[]{0x02, 0x0A, 0x05};
+        byte[] M = new byte[]{(byte) 0xC4, 0x54};
         
         BigInteger pk = ds.makeKeyPair(senha);
         ds.init();
