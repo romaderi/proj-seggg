@@ -17,8 +17,6 @@ public class Schnorr implements DigitalSignature {
     // chave pública (módulo p)
     private BigInteger y;
     
-    private BigInteger k; // número aleatório
-    private byte[] r; // usado pro pad
     private byte[] M; // mensagem
     
     // atributos do setup
@@ -34,19 +32,20 @@ public class Schnorr implements DigitalSignature {
         this.g = g;
         this.hash = H;
         this.random = sr;
-        
     }
 
     @Override
     public BigInteger makeKeyPair(String passwd) {
-
+        
         // alimenta o gerador aleatório
+        String id = "Schnorr";
         random.init(PRIVATE_BITS_KEY_SIZE);
         random.feed(passwd.getBytes(), passwd.getBytes().length);
+        random.feed(id.getBytes(), id.getBytes().length);
 
         // choose a private key x such that 0 < x < q
         int zLength = PRIVATE_BITS_KEY_SIZE; 
-        byte[] zbuf = new byte[zLength]; 
+        byte[] zbuf = null; 
         zbuf = random.fetch(zbuf, zLength);        
         x = new BigInteger(zbuf).mod(q);
 
@@ -74,16 +73,16 @@ public class Schnorr implements DigitalSignature {
         // Choose a random k such that 0 < k < q
         int zzLength = PRIVATE_BITS_KEY_SIZE/8; 
         byte[] zz = random.fetch(null, zzLength); 
-        k = new BigInteger(zz).mod(q);
-        r = g.modPow(k, p).toByteArray();
-
-        byte[] hr = ByteUtil.append(M, r, M.length, r.length);
+        BigInteger r = new BigInteger(zz).mod(q);
+        byte[] u = g.modPow(r, p).toByteArray();
+        
+        byte[] hu = ByteUtil.append(M, u, M.length, u.length);
         hash.init(PRIVATE_BITS_KEY_SIZE); 
-        hash.update(hr, hr.length);
+        hash.update(hu, hu.length);
         byte[] zero = new byte[1];
         byte[] resume = hash.getHash(null);
-        BigInteger e = new BigInteger(ByteUtil.append(zero, resume, 1, resume.length));
-        BigInteger s = k.subtract(x.multiply(e)).mod(q);
+        BigInteger e = new BigInteger(ByteUtil.append(zero, resume, 1, resume.length)).mod(q); // mod q é o segredo!
+        BigInteger s = r.subtract(x.multiply(e)).mod(q);
         
         return new BigInteger[]{e, s};
     }
@@ -94,21 +93,21 @@ public class Schnorr implements DigitalSignature {
         BigInteger e = sig[0];
         BigInteger s = sig[1];
         
-        BigInteger rv = g.pow(s.intValue());
-        BigInteger factor = y.pow(e.intValue());
-        rv = rv.multiply(factor).mod(p);
+        BigInteger u = g.modPow(s, p);
+        BigInteger factor = y.modPow(e, p);
+        u = u.multiply(factor).mod(p);
 
-        byte[] Mrv = ByteUtil.append(M, rv.toByteArray(), M.length, rv.toByteArray().length);
+        byte[] Mu = ByteUtil.append(M, u.toByteArray(), M.length, u.toByteArray().length);
         hash.init(PRIVATE_BITS_KEY_SIZE); 
-        hash.update(Mrv, Mrv.length);
+        hash.update(Mu, Mu.length);
         byte[] zero = new byte[1];
         byte[] resume = hash.getHash(null);
-        BigInteger ev = new BigInteger(ByteUtil.append(zero, resume, 1, resume.length));
+        BigInteger ev = new BigInteger(ByteUtil.append(zero, resume, 1, resume.length)).mod(q); // mod q é o segredo!
 
         if (ev.equals(e))
             return true;
         else
             return false;
     }
-
+    
 }
