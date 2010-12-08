@@ -88,9 +88,9 @@ public class App3 {
         }
 
         BigInteger[] pkDestCramerShoup = new BigInteger[3];
-//        pkDestCramerShoup[0] = BigInteger.valueOf(readByteFile(publicKeyDest + ".csc"));
-//        pkDestCramerShoup[1] = BigInteger.valueOf(readByteFile(publicKeyDest + ".csd"));
-//        pkDestCramerShoup[2] = BigInteger.valueOf(readByteFile(publicKeyDest + ".csh"));
+        pkDestCramerShoup[0] = new BigInteger(readByteFile(publicKeyDest + ".csc"));
+        pkDestCramerShoup[1] = new BigInteger(readByteFile(publicKeyDest + ".csd"));
+        pkDestCramerShoup[2] = new BigInteger(readByteFile(publicKeyDest + ".csh"));
         
         // gera chave simetrica aleatoria
         random = new SpongePRNG();
@@ -156,16 +156,21 @@ public class App3 {
         ke.setup(Defaults.p, Defaults.q, Defaults.g1, Defaults.g2, hash, random);
         ke.makeKeyPair(password + "Cramer-Shoup");        
         
-        // decifrar o arquivo
-        System.out.println("Digite o nome do arquivo a ser decifrado: ");
+        // Obter a chave publica
+        System.out.println("Digite o nome principal da chave publica do destinatario: ");
         System.out.print("$ "); 
-        fileName = new String();
+        publicKeyDest = new String();
         try {
-            fileName = inFromUser.readLine();
+        	publicKeyDest = inFromUser.readLine();
         } catch (Exception e) {
         }
-        fileData = readByteFile(fileName);
-//        ke.decrypt(password + "Cramer-Shoup", fileData);
+        pkDestCramerShoup = new BigInteger[4];
+        pkDestCramerShoup[0] = new BigInteger(readByteFile(publicKeyDest + ".csu1"));
+        pkDestCramerShoup[1] = new BigInteger(readByteFile(publicKeyDest + ".csu2"));
+        pkDestCramerShoup[2] = new BigInteger(readByteFile(publicKeyDest + ".cse"));
+        pkDestCramerShoup[3] = new BigInteger(readByteFile(publicKeyDest + ".csv"));
+
+        byte[] data = ke.decrypt(password + "Cramer-Shoup", pkDestCramerShoup);
         
         /*
          *  ITEM 4
@@ -193,7 +198,7 @@ public class App3 {
         	publicKeyDest = inFromUser.readLine();
         } catch (Exception e) {
         }
-//        BigInteger pkDestSchnorr = BigInteger.valueOf(readByteFile(publicKeyDest + ".sy"));
+        BigInteger pkDestSchnorr = new BigInteger(readByteFile(publicKeyDest + ".sy"));
         
         System.out.println("Digite o nome do arquivo acompanhado de assinatura: ");
         System.out.print("$ "); 
@@ -208,13 +213,13 @@ public class App3 {
         
         fileName = fileName.replaceAll("\\.\\w{3}$", ".se");
         BigInteger[] signatureFile = new BigInteger[2];
-//        signatureFile[0] = readByteFile(fileName.replaceAll("\\.\\w{3}$", ".se"));
-//        signatureFile[1] = readByteFile(fileName.replaceAll("\\.\\w{3}$", ".se"));
+        signatureFile[0] = new BigInteger(readByteFile(fileName.replaceAll("\\.\\w{3}$", ".se")));
+        signatureFile[1] = new BigInteger(readByteFile(fileName.replaceAll("\\.\\w{3}$", ".se")));
 
-//        if ( ds.verify(pkDestSchnorr, signatureFile) )
-//        	System.out.println("Item 5: arquivo " + fileName + " verificado com sucesso");
-//        else 
-//        	System.out.println("Item 5: erro na verificacao do arquivo" + fileName);
+        if ( ds.verify(pkDestSchnorr, signatureFile) )
+        	System.out.println("Item 5: arquivo " + fileName + " verificado com sucesso");
+        else 
+        	System.out.println("Item 5: erro na verificacao do arquivo" + fileName);
         
     }
     
